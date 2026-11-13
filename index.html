@@ -1,0 +1,1908 @@
+<title>컴패스랩</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@500;700&family=Gothic+A1:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 상단 아이 띠(이름·단계·성장 자) → 탭 → 한 칼럼 본문. 새싹 초록 잉크 + 돌잔치 금빛 이정표. */
+:root{
+  --bg:#f5f7f2; --sheet:#ffffff; --ink:#1d2a23; --ink2:#5b6a61; --line:#dde4dc;
+  --leaf:#2e6a4c; --leaf-soft:#e3eee6; --gold:#c9932b; --gold-soft:#f8eed7;
+  --rose:#b5463a; --rose-soft:#f7e3df; --sky:#2f5f8a; --sky-soft:#e2ebf4;
+  --mok:#3f7d4e; --hwa:#c0412f; --to:#a07a2c; --geum:#6f7378; --su:#26406b;
+  --f-display:"Hahmlet","Noto Serif KR",serif;
+  --f-body:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121815; --sheet:#1a221e; --ink:#e6ece8; --ink2:#9db0a5; --line:#2c3832;
+  --leaf:#79c39b; --leaf-soft:#1f3328; --gold:#e3b558; --gold-soft:#3a3020;
+  --rose:#e88274; --rose-soft:#3b2421; --sky:#8fb6dd; --sky-soft:#1e2c3a;
+  --mok:#7cc08f; --hwa:#e97f6c; --to:#d6ae5e; --geum:#b0b6bb; --su:#93acd9; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121815; --sheet:#1a221e; --ink:#e6ece8; --ink2:#9db0a5; --line:#2c3832;
+  --leaf:#79c39b; --leaf-soft:#1f3328; --gold:#e3b558; --gold-soft:#3a3020;
+  --rose:#e88274; --rose-soft:#3b2421; --sky:#8fb6dd; --sky-soft:#1e2c3a;
+  --mok:#7cc08f; --hwa:#e97f6c; --to:#d6ae5e; --geum:#b0b6bb; --su:#93acd9; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sheet)}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.3;text-wrap:balance}
+h1{font-size:1.6rem} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink2)} .small{font-size:.86rem}
+.label{font-size:.75rem;letter-spacing:.08em;color:var(--ink2);font-weight:700}
+.wrap{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row>*{min-width:0}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--sheet);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:12px;min-height:54px;padding-block:6px}
+.brand{font-family:var(--f-display);font-weight:700;color:var(--leaf);white-space:nowrap}
+.kids{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.kids::-webkit-scrollbar{display:none}
+.kid{border:1px solid var(--line);background:var(--sheet);border-radius:999px;padding:5px 12px;white-space:nowrap;cursor:pointer}
+.kid[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:var(--sheet);font-weight:700}
+.kid.add{border-style:dashed;color:var(--ink2)}
+.sync{border:1px solid var(--line);background:var(--sheet);color:var(--ink2);border-radius:999px;padding:4px 10px;font-size:.78rem;white-space:nowrap;cursor:pointer}
+.sync.on{border-color:var(--leaf);color:var(--leaf)} .sync.err{border-color:var(--gold);color:var(--gold)}
+.acct{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.acct form{display:flex;flex-direction:column;gap:10px}
+.consent{display:flex;flex-direction:column;gap:6px;font-size:.88rem}
+.consent label{display:flex;gap:8px;align-items:flex-start}
+.err-msg{color:var(--gold);font-size:.88rem}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--line)}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:none;padding:10px 12px;white-space:nowrap;cursor:pointer;color:var(--ink2);border-bottom:2px solid transparent}
+.tab[aria-selected="true"]{color:var(--ink);font-weight:700;border-bottom-color:var(--gold)}
+
+main{padding-block:20px 72px;display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:18px}
+.btn{border:1px solid var(--line);background:var(--sheet);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--leaf)}
+.btn.primary{background:var(--leaf);border-color:var(--leaf);color:var(--sheet);font-weight:700}
+.btn.ghost{border-color:transparent;background:none;color:var(--leaf);padding-inline:6px}
+.btn.small{padding:5px 10px;font-size:.85rem}
+.pill{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.p-now{background:var(--gold-soft);color:var(--gold)} .p-soon{background:var(--sky-soft);color:var(--sky)}
+.p-past{background:var(--line);color:var(--ink2)} .p-done{background:var(--leaf-soft);color:var(--leaf)}
+.p-warn{background:var(--rose-soft);color:var(--rose)} .p-ex{background:var(--gold-soft);color:var(--gold)}
+.notice{border-left:3px solid var(--gold);background:var(--gold-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.88rem}
+.empty{padding:22px;text-align:center;color:var(--ink2);border:1px dashed var(--line);border-radius:14px}
+
+/* 아이 띠 */
+.hero{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end}
+.hero .who{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stage-name{font-family:var(--f-display);font-size:2.1rem;color:var(--leaf);line-height:1.15}
+.age{font-family:var(--f-num)}
+/* 성장 자: 출생 → 백일 → 돌 → 유치원 → 초등 → 중학교, 실제 날짜 비율로 */
+.ruler{position:relative;height:66px;margin-top:6px}
+.ruler .bar{position:absolute;left:0;right:0;top:22px;height:6px;border-radius:3px;background:var(--line)}
+.ruler .fill{position:absolute;left:0;top:22px;height:6px;border-radius:3px;background:var(--leaf)}
+.ruler .tick{position:absolute;top:14px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.72rem;color:var(--ink2);white-space:nowrap}
+.ruler .tick i{width:14px;height:14px;border-radius:50%;background:var(--sheet);border:2px solid var(--line)}
+.ruler .tick.done i{background:var(--leaf);border-color:var(--leaf)}
+.ruler .tick.gold i{border-color:var(--gold);background:var(--gold-soft)}
+.ruler .tick:first-child{transform:none;align-items:flex-start} .ruler .tick:last-child{transform:translateX(-100%);align-items:flex-end}
+.ruler .you{position:absolute;top:0;transform:translateX(-50%);font-size:.7rem;font-weight:700;color:var(--gold)}
+
+/* 할 일 */
+.task{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:start}
+.task:last-child{border-bottom:0}
+.task input{width:20px;height:20px;accent-color:var(--leaf);margin-top:2px}
+.task .t{font-weight:700} .task .d{grid-column:2/4;font-size:.86rem;color:var(--ink2)}
+.task.is-done .t{text-decoration:line-through;color:var(--ink2)}
+.cat{font-size:.72rem;color:var(--ink2);margin-left:6px;font-weight:500}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--sheet);padding:5px 12px;border-radius:999px;cursor:pointer;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+
+/* 성향 */
+.areas{display:grid;gap:10px}
+.area{display:grid;grid-template-columns:96px 1fr 44px;gap:10px;align-items:center;font-size:.9rem}
+.track{position:relative;height:10px;background:var(--line);border-radius:5px}
+.track .base{position:absolute;top:-3px;width:2px;height:16px;background:var(--ink2)}
+.track .ans{position:absolute;left:0;top:0;height:10px;border-radius:5px;background:var(--leaf)}
+.legend{display:flex;gap:14px;font-size:.78rem;color:var(--ink2)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--leaf)}
+.legend span.b::before{width:2px;background:var(--ink2)}
+.q{padding:12px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale label{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:.7rem;color:var(--ink2);text-align:center;line-height:1.2}
+.scale input{position:absolute;opacity:0;pointer-events:none}
+.scale b{font-size:.95rem;color:var(--ink)}
+.scale label:has(input:checked){border-color:var(--leaf);background:var(--leaf-soft);color:var(--leaf)}
+.scale label:has(input:focus-visible){outline:2px solid var(--gold)}
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.rec{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;background:var(--sheet)}
+.rec h3{font-size:1rem}
+
+/* 기관 체크 */
+.ck{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.tri{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tri button{border:0;background:none;padding:5px 9px;font-size:.78rem;cursor:pointer;color:var(--ink2)}
+.tri button[aria-pressed="true"]{background:var(--leaf);color:var(--sheet);font-weight:700}
+.tri button.need[aria-pressed="true"]{background:var(--rose)}
+.grp-hot{color:var(--gold);font-size:.75rem;font-weight:700;margin-left:6px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.85rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--bg);color:var(--ink2);font-weight:700;white-space:nowrap}
+
+/* 심명 보기 */
+.pillars{display:flex;gap:8px;flex-wrap:wrap}
+.pil{border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;min-width:62px}
+.pil .gz{font-family:var(--f-display);font-size:1.6rem;line-height:1.15}
+.pil .lb{font-size:.7rem;color:var(--ink2)}
+.gods{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.god{border-radius:10px;padding:10px;text-align:center;border:1px solid var(--line)}
+.god b{display:block;font-family:var(--f-display);font-size:1.4rem}
+.e-목{color:var(--mok)}.e-화{color:var(--hwa)}.e-토{color:var(--to)}.e-금{color:var(--geum)}.e-수{color:var(--su)}
+.months{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.mo{border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:.78rem;display:flex;flex-direction:column;gap:2px}
+.mo .gz{font-family:var(--f-display);font-size:1.05rem}
+.mo.r-YONGSIN,.mo.r-HUISIN{background:var(--leaf-soft);border-color:var(--leaf)}
+.mo.r-BYEONGSIN{background:var(--rose-soft);border-color:var(--rose)}
+.mo.now{outline:2px solid var(--gold)}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem}
+.switch input{width:38px;height:22px;accent-color:var(--leaf)}
+
+/* 폼 */
+form.child{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--ink2);min-width:0}
+.fld input,.fld select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.link{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;color:var(--ink);background:var(--sheet)}
+.link:hover{border-color:var(--leaf)}
+.link b{font-family:var(--f-display)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:10px 16px;border-radius:10px;font-size:.88rem;z-index:20}
+footer{font-size:.78rem;color:var(--ink2);border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:560px){.stage-name{font-size:1.7rem}.months{grid-template-columns:repeat(4,1fr)}.gods{grid-template-columns:repeat(2,1fr)}.area{grid-template-columns:78px 1fr 38px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap top-in">
+    <span class="brand">컴패스랩</span>
+    <button class="sync" id="syncPill" data-tab="account" hidden></button>
+    <div class="kids" id="kids" role="group" aria-label="아이 선택"></div>
+  </div>
+  <div class="wrap"><nav class="tabs" id="tabs" role="tablist"></nav></div>
+</header>
+<main class="wrap" id="app"></main>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>/* engine/saju-core.js */
+/* ============================================================
+   saju-core.js — 사주코어 계산 엔진 (순수 로직, DOM 의존 없음)
+   -------------------------------------------------------------
+   와이튜브 "평생 사주 기반 인생 설계" 플랫폼의 공통 엔진.
+   이 파일 하나만 불러오면 아래 함수/데이터를 어느 화면에서든
+   재사용할 수 있습니다 (예: 대학매칭 페이지, 진로리포트 페이지 등).
+
+   사용법 (브라우저):
+     <script src="saju-core.js"><\/script>
+     <script>
+       const saju = SajuCore.computeSaju(1974,4,10,23,40,true,'M');
+       const ys   = SajuCore.computeYongsin(saju, true);
+       console.log(ys.yongsin, ys.huisin, ys.gisin, ys.gusin);
+     <\/script>
+
+   * 원본 saju-core.html에서 계산 로직을 옮긴 공통 엔진입니다.
+   * 통일본 v2026.11.07b (SCM·gunghapcore·평생앱 공용) — 아래 항목이 확정 반영됨
+     ① 자시는 정자시로 고정 (23:30부터 다음날 일주, jasiMode 인자는 무시)
+     ② 시지는 한국 표준시 30분 보정 (자시 23:30~01:29 … 해시 21:30~23:29)
+     ③ 희신 = 용신을 생하는 오행 (whoGenerates(yongsin))
+     ④ 신약 + 관성이 최강 오행이면 비겁(일간 오행)을 용신으로 (통관보다 우선)
+     ⑤ 서머타임·표준시 변경 보정 (1948~51, 1955~60, 1987~88 서머타임 / 1954.3~1961.8 UTC+8:30)
+        → 입력은 "그때 시계가 가리킨 시각". 엔진이 동경135도(UTC+9) 기준 시각으로 바꾼 뒤 계산 (2026.11.07 확정)
+     ⑥ 흐르는 운(대운·세운)의 십신·용신 판정은 지지 기준. 원국은 일간 기준 유지 (2026.11.07 확정)
+     이 파일을 고칠 때는 모든 저장소의 사본을 같이 갱신하세요.
+   ============================================================ */
+
+/* ===================== 기초 데이터 ===================== */
+const STEMS = ["갑","을","병","정","무","기","경","신","임","계"];
+const STEMS_HAN = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+const BRANCHES = ["자","축","인","묘","진","사","오","미","신","유","술","해"];
+const BRANCHES_HAN = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+const STEM_ELEM = ["목","목","화","화","토","토","금","금","수","수"];
+const BRANCH_ELEM = ["수","토","목","목","토","화","화","토","금","금","토","수"];
+const ELEM_COLOR = {"목":"var(--mok)","화":"var(--hwa)","토":"var(--to)","금":"var(--geum)","수":"var(--su)"};
+
+function gzFromIndex(idx){
+  idx = ((idx % 60) + 60) % 60;
+  return { stem: idx % 10, branch: idx % 12 };
+}
+function findGZIndex(stem, branch){
+  for(let n=0;n<60;n++){ if(n%10===stem && n%12===branch) return n; }
+  return -1;
+}
+
+/* ===================== 천문 계산 ===================== */
+function toJD(y, m, d, h){ // h = UT decimal hours
+  if(m<=2){ y-=1; m+=12; }
+  const A = Math.floor(y/100);
+  const B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + h/24 + B - 1524.5;
+}
+function solarLongitude(jd){
+  const T = (jd - 2451545.0) / 36525;
+  const L0 = 280.46646 + 36000.76983*T + 0.0003032*T*T;
+  const M  = 357.52911 + 35999.05029*T - 0.0001537*T*T;
+  const Mr = M*Math.PI/180;
+  const C = (1.914602 - 0.004817*T - 0.000014*T*T)*Math.sin(Mr)
+          + (0.019993 - 0.000101*T)*Math.sin(2*Mr)
+          + 0.000289*Math.sin(3*Mr);
+  const trueLong = L0 + C;
+  const omega = 125.04 - 1934.136*T;
+  let apparent = trueLong - 0.00569 - 0.00478*Math.sin(omega*Math.PI/180);
+  apparent = ((apparent % 360)+360)%360;
+  return apparent;
+}
+function findTermJD(guessJD, targetDeg){
+  let lo = guessJD-10, hi = guessJD+10;
+  function f(jd){
+    let diff = solarLongitude(jd) - targetDeg;
+    if(diff>180) diff-=360;
+    if(diff<-180) diff+=360;
+    return diff;
+  }
+  let flo = f(lo);
+  for(let i=0;i<60;i++){
+    const mid=(lo+hi)/2, fm=f(mid);
+    if((flo<0 && fm<0) || (flo>0 && fm>0)){ lo=mid; flo=fm; } else { hi=mid; }
+  }
+  return (lo+hi)/2;
+}
+// 12 절(節) 정의: [황경, 근사월, 근사일, 시작월지]
+const JEOL_DEFS = [
+  {deg:315, m:2,  d:4,  branch:2},  // 입춘 -> 인월
+  {deg:345, m:3,  d:6,  branch:3},  // 경칩 -> 묘월
+  {deg:15,  m:4,  d:5,  branch:4},  // 청명 -> 진월
+  {deg:45,  m:5,  d:6,  branch:5},  // 입하 -> 사월
+  {deg:75,  m:6,  d:6,  branch:6},  // 망종 -> 오월
+  {deg:105, m:7,  d:7,  branch:7},  // 소서 -> 미월
+  {deg:135, m:8,  d:8,  branch:8},  // 입추 -> 신월
+  {deg:165, m:9,  d:8,  branch:9},  // 백로 -> 유월
+  {deg:195, m:10, d:8,  branch:10}, // 한로 -> 술월
+  {deg:225, m:11, d:7,  branch:11}, // 입동 -> 해월
+  {deg:255, m:12, d:7,  branch:0},  // 대설 -> 자월
+  {deg:285, m:1,  d:6,  branch:1},  // 소한 -> 축월
+];
+function computeJeolTerms(centerYear){
+  const terms = [];
+  for(const yr of [centerYear-1, centerYear, centerYear+1]){
+    for(const def of JEOL_DEFS){
+      const guess = toJD(yr, def.m, def.d, -9); // KST->UT 근사 보정한 자정 근처
+      const jd = findTermJD(guess, def.deg);
+      terms.push({jd, branch:def.branch});
+    }
+  }
+  terms.sort((a,b)=>a.jd-b.jd);
+  return terms;
+}
+
+/* ===================== 서머타임·표준시 보정 ===================== */
+// 한국(Asia/Seoul) UTC 오프셋 변경 이력 — IANA 시간대 데이터베이스에서 추출. [변경 시각(UTC), 이후 오프셋(분)]
+const SEOUL_OFFSETS = [
+  ["1948-05-31T15:00Z",600],["1948-09-12T14:00Z",540],["1949-04-02T15:00Z",600],["1949-09-10T14:00Z",540],
+  ["1950-03-31T15:00Z",600],["1950-09-09T14:00Z",540],["1951-05-05T15:00Z",600],["1951-09-08T14:00Z",540],
+  ["1954-03-20T15:00Z",510],["1955-05-04T15:30Z",570],["1955-09-08T14:30Z",510],["1956-05-19T15:30Z",570],
+  ["1956-09-29T14:30Z",510],["1957-05-04T15:30Z",570],["1957-09-21T14:30Z",510],["1958-05-03T15:30Z",570],
+  ["1958-09-20T14:30Z",510],["1959-05-02T15:30Z",570],["1959-09-19T14:30Z",510],["1960-04-30T15:30Z",570],
+  ["1960-09-17T14:30Z",510],["1961-08-09T15:30Z",540],["1987-05-09T17:00Z",600],["1987-10-10T17:00Z",540],
+  ["1988-05-07T17:00Z",600],["1988-10-08T17:00Z",540]
+].map(([t,o])=>[Date.parse(t),o]);
+function seoulOffsetAt(utcMs){
+  let off = 540;
+  for(const [t,o] of SEOUL_OFFSETS){ if(utcMs >= t) off = o; else break; }
+  return off;
+}
+/** 시계 시각(그 시절 한국 시계) → 동경135도(UTC+9) 기준 시각. 서머타임·UTC+8:30 시기를 반영 */
+function normalizeToKST(y,m,d,hour,minute){
+  const wall = Date.UTC(y,m-1,d,hour,minute);
+  let utc = wall - 540*60000;
+  for(let i=0;i<3;i++){ const off=seoulOffsetAt(utc); const next = wall - off*60000; if(next===utc) break; utc = next; }
+  const offsetMin = seoulOffsetAt(utc);
+  const k = new Date(utc + 540*60000);
+  let note = "";
+  if(offsetMin===600) note = "서머타임 시기 — 시계 시각에서 1시간을 빼서 계산";
+  else if(offsetMin===570) note = "서머타임 시기(당시 표준시 UTC+8:30) — 동경135도 기준으로 30분을 더해 계산";
+  else if(offsetMin===510) note = "당시 표준시 UTC+8:30 — 동경135도 기준으로 30분을 더해 계산";
+  return { y:k.getUTCFullYear(), m:k.getUTCMonth()+1, d:k.getUTCDate(), hour:k.getUTCHours(), minute:k.getUTCMinutes(), offsetMin, note };
+}
+
+/* ===================== 사주 계산 ===================== */
+function addOneDay(y,m,d){
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCDate(dt.getUTCDate()+1);
+  return { y: dt.getUTCFullYear(), m: dt.getUTCMonth()+1, d: dt.getUTCDate() };
+}
+function computeSaju(y,m,d,hour,minute,hasTime,gender,jasiMode){
+  // 서머타임·옛 표준시 보정: 입력(그때의 시계 시각)을 동경135도(UTC+9) 기준 시각으로 바꾼다
+  // jasiMode === 'kst' 이면 호출하는 쪽이 이미 UTC+9 표준시로 바꿔서 넘긴 것이므로 다시 보정하지 않는다
+  let timeCorrection = { offsetMin: 540, note: "" };
+  if(hasTime && jasiMode !== 'kst'){
+    const k = normalizeToKST(y,m,d,hour,minute);
+    timeCorrection = { offsetMin: k.offsetMin, note: k.note, input: {y,m,d,hour,minute} };
+    y=k.y; m=k.m; d=k.d; hour=k.hour; minute=k.minute;
+  }
+  const utHour = hour + minute/60 - 9; // KST -> UT
+  const birthJD = toJD(y,m,d, utHour);
+
+  // 일주 계산용 날짜 — 대표님 고유 이론: 정자시로 고정
+  // 23:30부터 이미 다음날로 취급 → 하루를 당겨서 계산 (jasiMode 인자는 호환용으로만 받고 무시)
+  jasiMode = 'unified';
+  let dayCalcDate = {y,m,d};
+  if(hasTime && (hour===23 && minute>=30)){
+    dayCalcDate = addOneDay(y,m,d);
+  }
+
+  const terms = computeJeolTerms(y);
+  // 현재 절(월주 결정) : birthJD 이하 중 가장 늦은 term
+  let curIdx = -1;
+  for(let i=0;i<terms.length;i++){ if(terms[i].jd<=birthJD) curIdx=i; }
+  const monthBranch = terms[curIdx].branch;
+  const monthStartJD = terms[curIdx].jd;
+  const nextTermJD = terms[curIdx+1].jd;
+  const prevTermJD = curIdx>0 ? terms[curIdx-1].jd : terms[curIdx].jd;
+
+  // 입춘 기준 연주(year pillar)
+  const ipchunGuess = toJD(y,2,4,-9);
+  const ipchunJD = findTermJD(ipchunGuess, 315);
+  const sajuYear = birthJD < ipchunJD ? y-1 : y;
+  const yearIdx = ((sajuYear-4)%60+60)%60;
+  const yearStem = yearIdx%10, yearBranch = yearIdx%12;
+
+  // 월주
+  const baseStemArr = [2,4,6,8,0];
+  const monthsSinceYin = (monthBranch-2+12)%12;
+  const monthStem = (baseStemArr[yearStem%5] + monthsSinceYin)%10;
+
+  // 일주 (일주는 해당 지역 달력일 자체에 대응하므로 시간대 보정 없이 계산)
+  const JDN = Math.floor(toJD(dayCalcDate.y,dayCalcDate.m,dayCalcDate.d,12));
+  const dayIdx = ((JDN+49)%60+60)%60;
+  const dayStem = dayIdx%10, dayBranch = dayIdx%12;
+
+  // 시주
+  let hourStem=null, hourBranch=null;
+  if(hasTime){
+    // 한국 표준시(동경 135도)는 실제 태양시보다 약 30분 빠르므로 30분을 보정해 시지를 정합니다.
+    // 자시 23:30~01:29, 축시 01:30~03:29 … 술시 19:30~21:29, 해시 21:30~23:29
+    // (날짜가 23:30에 넘어가는 정자시 기준과도 맞춰짐)
+    const solarMin = ((hour*60 + minute - 30) % 1440 + 1440) % 1440;
+    hourBranch = Math.floor(((solarMin + 60) % 1440) / 120);
+    const hbaseArr=[0,2,4,6,8];
+    hourStem = (hbaseArr[dayStem%5] + hourBranch)%10;
+  }
+
+  // 대운
+  const isYangYear = (yearStem%2===0);
+  const forward = (isYangYear && gender==='M') || (!isYangYear && gender==='F');
+  const daysDiff = forward ? (nextTermJD - birthJD) : (birthJD - monthStartJD);
+  const dwStartAgeExact = daysDiff/3;
+  const dwStartAge = Math.max(1, Math.round(dwStartAgeExact));
+  const monthGZIndex = findGZIndex(monthStem, monthBranch);
+  const daewoon = [];
+  for(let k=1;k<=9;k++){
+    const idx = ((monthGZIndex + (forward?1:-1)*k)%60+60)%60;
+    daewoon.push({ idx, startAge: dwStartAge + 10*(k-1) });
+  }
+
+  return {
+    year:{stem:yearStem,branch:yearBranch},
+    month:{stem:monthStem,branch:monthBranch},
+    day:{stem:dayStem,branch:dayBranch},
+    hour: hasTime ? {stem:hourStem,branch:hourBranch} : null,
+    sajuYear, forward, dwStartAge, dwStartAgeExact, daewoon,
+    birthYear: y, jasiMode, timeCorrection
+  };
+}
+
+/* ===================== 용신 분석 (억부·조후·통관·병약 고전이론) ===================== */
+// 오행 상생: A가 B를 낳음 / 상극: A가 B를 제어함 (전통 명리학 공개 이론)
+const GENERATES = {"목":"화","화":"토","토":"금","금":"수","수":"목"};
+const CONTROLS  = {"목":"토","화":"금","토":"수","금":"목","수":"화"};
+function whoGenerates(target){ return Object.keys(GENERATES).find(k=>GENERATES[k]===target); } // target을 낳아주는 오행 (인성)
+function whoControls(target){ return Object.keys(CONTROLS).find(k=>CONTROLS[k]===target); }   // target을 극하는 오행
+
+function seasonOf(monthBranch){
+  // 인묘진=봄(목), 사오미=여름(화), 신유술=가을(금), 해자축=겨울(수)
+  if([2,3,4].includes(monthBranch)) return "봄";
+  if([5,6,7].includes(monthBranch)) return "여름";
+  if([8,9,10].includes(monthBranch)) return "가을";
+  return "겨울";
+}
+
+// 삼합(三合): 지지 세 글자가 모이면 하나의 오행 기운으로 응축됨 (왕지 포함 2개만 모이면 반합)
+const SAMHAP = [
+  { branches:[11,3,7], elem:"목", king:3,  label:"해묘미(亥卯未)" },
+  { branches:[2,6,10], elem:"화", king:6,  label:"인오술(寅午戌)" },
+  { branches:[5,9,1],  elem:"금", king:9,  label:"사유축(巳酉丑)" },
+  { branches:[8,0,4],  elem:"수", king:0,  label:"신자진(申子辰)" },
+];
+// 충(沖): 마주보는 지지끼리 부딪혀 합의 효력을 약화시킴
+const CHUNG_PAIRS = [[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]];
+function chungPartner(branch){
+  const pair = CHUNG_PAIRS.find(p=>p.includes(branch));
+  return pair ? pair.find(b=>b!==branch) : null;
+}
+
+function detectSamhap(branchPositions){
+  // branchPositions: [{branch, label}] (년/월/일/시)
+  const presentBranches = branchPositions.map(p=>p.branch);
+  const bonus = {"목":0,"화":0,"토":0,"금":0,"수":0};
+  const notes = [];
+  for(const def of SAMHAP){
+    const matched = def.branches.filter(b=>presentBranches.includes(b));
+    if(matched.length===3){
+      let strength = 1.0, weakenNote = "";
+      // 충으로 약화되는지 확인
+      const broken = matched.some(b=>presentBranches.includes(chungPartner(b)));
+      if(broken){ strength = 0.5; weakenNote = " (단, 충 관계가 함께 있어 결합력이 절반으로 약화됨)"; }
+      matched.forEach(()=>{ bonus[def.elem]+=strength; });
+      notes.push(`삼합 성립: ${def.label} → ${def.elem} 기운 응축${weakenNote}`);
+    } else if(matched.length===2 && matched.includes(def.king)){
+      let strength = 0.5, weakenNote = "";
+      const broken = matched.some(b=>presentBranches.includes(chungPartner(b)));
+      if(broken){ strength = 0.25; weakenNote = " (충으로 결합력 약화)"; }
+      matched.forEach(()=>{ bonus[def.elem]+=strength; });
+      notes.push(`반합 성립: ${def.label} 중 ${matched.length}자 → ${def.elem} 기운 일부 가세${weakenNote}`);
+    }
+  }
+  return { bonus, notes };
+}
+
+// 육합(六合): 지지 두 글자가 짝을 이루면 삼합보다 약한 결합력으로 오행이 발생 (오미합은 오행 생성 불명확한 특수합)
+const YUKHAP = [
+  { pair:[0,1], elem:"토", label:"자축합(子丑合)" },
+  { pair:[2,11], elem:"목", label:"인해합(寅亥合)" },
+  { pair:[3,10], elem:"화", label:"묘술합(卯戌合)" },
+  { pair:[4,9], elem:"금", label:"진유합(辰酉合)" },
+  { pair:[5,8], elem:"수", label:"사신합(巳申合)" },
+  { pair:[6,7], elem:null, label:"오미합(午未合, 오행 생성 불명확한 특수합)" },
+];
+function detectYukhap(branchPositions){
+  const presentBranches = branchPositions.map(p=>p.branch);
+  const bonus = {"목":0,"화":0,"토":0,"금":0,"수":0};
+  const notes = [];
+  for(const def of YUKHAP){
+    const [a,b] = def.pair;
+    if(presentBranches.includes(a) && presentBranches.includes(b)){
+      let strength = 0.3, weakenNote = "";
+      const broken = presentBranches.includes(chungPartner(a)) || presentBranches.includes(chungPartner(b));
+      if(broken){ strength = 0.15; weakenNote = " (충으로 결합력 약화)"; }
+      if(def.elem){ bonus[def.elem]+=strength; notes.push(`육합 성립: ${def.label} → ${def.elem} 기운 소폭 가세${weakenNote}`); }
+      else { notes.push(`육합 성립: ${def.label}${weakenNote}`); }
+    }
+  }
+  return { bonus, notes };
+}
+
+function computeYongsin(saju, hasTime){
+  const counts = {"목":0,"화":0,"토":0,"금":0,"수":0};
+  counts[STEM_ELEM[saju.year.stem]]++;
+  counts[STEM_ELEM[saju.month.stem]]++;
+  counts[STEM_ELEM[saju.day.stem]]++;
+  if(hasTime) counts[STEM_ELEM[saju.hour.stem]]++;
+  counts[BRANCH_ELEM[saju.year.branch]]++;
+  counts[BRANCH_ELEM[saju.month.branch]] += 2; // 월지는 계절의 사령이므로 가중치 2 (득령 개념)
+  counts[BRANCH_ELEM[saju.day.branch]]++;
+  if(hasTime) counts[BRANCH_ELEM[saju.hour.branch]]++;
+
+  // 삼합/반합 보정
+  const branchPositions = [
+    {branch:saju.year.branch}, {branch:saju.month.branch}, {branch:saju.day.branch}
+  ];
+  if(hasTime) branchPositions.push({branch:saju.hour.branch});
+  const samhap = detectSamhap(branchPositions);
+  for(const el of Object.keys(counts)){ counts[el] += samhap.bonus[el]; }
+  const yukhap = detectYukhap(branchPositions);
+  for(const el of Object.keys(counts)){ counts[el] += yukhap.bonus[el]; }
+
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+  const dayElem = STEM_ELEM[saju.day.stem];       // 일간 오행 = 비겁
+  const inseongElem = whoGenerates(dayElem);       // 일간을 생하는 오행 = 인성
+
+  const group1 = counts[dayElem] + counts[inseongElem]; // 비겁+인성 (신강 세력)
+  const group2 = total - group1;                        // 식상+재성+관성 (신약 세력 유발)
+  const isStrong = group1 > group2;
+
+  const sortedElems = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  const strongest = sortedElems[0];
+  const secondStrongest = sortedElems[1];
+  const weakest = sortedElems[sortedElems.length-1];
+
+  // ---- 통관(通關) 판단: 1·2위 오행이 상극 관계이면서 세력 차이가 크지 않을 때 ----
+  let tonggwan = null;
+  const gap = counts[strongest] - counts[secondStrongest];
+  const isConflict = (CONTROLS[strongest]===secondStrongest) || (CONTROLS[secondStrongest]===strongest);
+  if(isConflict && gap <= 1.5 && counts[secondStrongest] > 0){
+    const [A,B] = CONTROLS[strongest]===secondStrongest ? [strongest, secondStrongest] : [secondStrongest, strongest];
+    const mediator = GENERATES[A]; // A생B의 다리 역할 (A생M, M생B)
+    tonggwan = { A, B, mediator, note: `${A}(${counts[A]})과 ${B}(${counts[B]})가 팽팽히 상극하고 있어, ${mediator} 기운이 둘을 중재하는 통관용신 후보가 됩니다.` };
+  }
+
+  // ---- 억부용신 산출 ----
+  // 대표님 이론(2026.11.07 확정): 신약 사주에서 가장 강한 오행이 관성(일간을 극하는 오행)이면,
+  // 그 관성에 눌려 약해진 일간 오행(비겁)을 용신으로, 그것을 생하는 인성을 희신으로 삼는다.
+  // 이 판단은 통관보다 우선한다. (예: 1974.4.10 23:40 임수 일간, 토 최강 → 용신 수·희신 금)
+  const gwanElem = whoControls(dayElem);
+  let yongsin, reason;
+  if(!isStrong && strongest === gwanElem){
+    yongsin = dayElem;
+    reason = `신약 사주 — 가장 강한 ${strongest}(관성)이 일간 ${dayElem}을 극해 약하게 만들고 있으므로, 눌린 ${dayElem}(비겁)을 용신으로 삼아 직접 힘을 세웁니다.`;
+  } else if(tonggwan && counts[tonggwan.mediator] > 0){
+    yongsin = tonggwan.mediator;
+    reason = `통관 우선 — ${tonggwan.note}`;
+  } else if(isStrong){
+    const controller = whoControls(strongest);
+    if(counts[controller] > 0){
+      yongsin = controller;
+      reason = `신강 사주 — 가장 강한 ${strongest} 기운을 직접 제어하는 ${controller} 기운을 억부용신으로 삼습니다.`;
+    } else {
+      yongsin = GENERATES[strongest];
+      reason = `신강 사주이나 ${strongest}을 극하는 오행이 원국에 없어, 대신 ${strongest}의 기운을 자연스럽게 빼주는(설기) ${GENERATES[strongest]} 기운을 용신으로 삼습니다.`;
+    }
+  } else {
+    if(counts[inseongElem] > 0){
+      yongsin = inseongElem;
+      reason = `신약 사주 — 일간을 생조하는 인성(${inseongElem}) 기운으로 힘을 보강합니다.`;
+    } else {
+      yongsin = dayElem;
+      reason = `신약 사주이나 인성(${inseongElem})이 원국에 없어, 비겁(${dayElem})으로 직접 힘을 보강합니다.`;
+    }
+  }
+
+  // ---- 희신/병신/약신: 용신 중심 4신 체계 (희신=용신을 생함, 병신=용신을 극함, 약신=병신을 극함) ----
+  const huisin = whoGenerates(yongsin);     // 용신을 생하는 오행 = 희신
+  const gisin = whoControls(yongsin);       // 용신을 극하는 오행 = 병신
+  const gusin = whoControls(gisin);         // 병신을 극하는 오행 = 약신
+
+  // ---- 병약(病藥) 판단: 용신이 실제로 원국 내에서 공격받고 있는가 ----
+  let byeongyak = null;
+  if(counts[gisin] >= counts[yongsin] && counts[gisin] > 0){
+    byeongyak = {
+      byeong: gisin, yak: gusin,
+      note: `용신(${yongsin})보다 이를 공격하는 병신(${gisin})의 세력이 더 강해 '병(病)'이 든 상태입니다. 병신을 제어하는 ${gusin} 기운이 '약(藥)'의 역할을 해야 합니다.`
+    };
+  }
+
+  // ---- 조후 참고 ----
+  const season = seasonOf(saju.month.branch);
+  let johuNote = "";
+  if((season==="여름") && (dayElem==="화" || counts["화"]>=3)){
+    johuNote = "여름 출생에 화 기운까지 강해 사주가 뜨겁습니다. 수(水) 기운으로 식혀주는 조후가 함께 필요합니다.";
+  } else if((season==="겨울") && (dayElem==="수" || counts["수"]>=3)){
+    johuNote = "겨울 출생에 수 기운까지 강해 사주가 차갑습니다. 화(火) 기운으로 데워주는 조후가 함께 필요합니다.";
+  } else if(season==="여름"){
+    johuNote = "여름 출생이라 사주가 전반적으로 건조·고온한 경향이 있어, 수 기운의 존재 여부를 함께 살펴보면 좋습니다.";
+  } else if(season==="겨울"){
+    johuNote = "겨울 출생이라 사주가 전반적으로 한랭한 경향이 있어, 화 기운의 존재 여부를 함께 살펴보면 좋습니다.";
+  }
+
+  return {
+    counts, total, isStrong, group1, group2, strongest, weakest,
+    yongsin, reason, huisin, gisin, gusin, tonggwan, byeongyak,
+    samhapNotes: samhap.notes.concat(yukhap.notes), season, johuNote
+  };
+}
+
+/* ===================== 대운 진로 흐름 분석 (십신 × 12운성, 고전이론 응용) ===================== */
+// 12운성: 양간은 장생 지지부터 순행, 음간은 장생 지지부터 역행 (전통 명리학 공개 산출식)
+const STAGE_ORDER = ["장생","목욕","관대","건록","제왕","쇠","병","사","묘","절","태","양"];
+const JANGSAENG_ARR = [11,6,2,9,2,9,5,0,8,3]; // 갑을병정무기경신임계 순서의 장생 지지 인덱스
+function twelveStage(dayStemIdx, branchIdx){
+  const isYang = (dayStemIdx%2===0);
+  const js = JANGSAENG_ARR[dayStemIdx];
+  const diff = isYang ? ((branchIdx-js+12)%12) : ((js-branchIdx+12)%12);
+  return STAGE_ORDER[diff];
+}
+const STAGE_TIER = {
+  "장생":"강","관대":"강","건록":"강","제왕":"강",
+  "목욕":"보통","쇠":"보통","병":"보통",
+  "사":"약","묘":"약","절":"약","태":"약","양":"약",
+};
+
+// 십신(十神) 세분화: 음양까지 비교하여 10가지로 분류 (전통 명리학 공개 이론)
+function tenGod10(dayStemIdx, targetElem, targetEven){
+  const dayElem = STEM_ELEM[dayStemIdx];
+  const dayEven = (dayStemIdx%2===0); // 짝수 인덱스=양간/양지
+  const same = (dayEven===targetEven);
+  if(targetElem===dayElem) return same?"비견":"겁재";
+  if(GENERATES[dayElem]===targetElem) return same?"식신":"상관";
+  if(CONTROLS[dayElem]===targetElem) return same?"편재":"정재";
+  if(CONTROLS[targetElem]===dayElem) return same?"편관":"정관";
+  if(GENERATES[targetElem]===dayElem) return same?"편인":"정인";
+}
+const GROUP5 = {"비견":"비겁","겁재":"비겁","식신":"식상","상관":"식상","편재":"재성","정재":"재성","편관":"관성","정관":"관성","편인":"인성","정인":"인성"};
+const TEN_GOD_DESC = {
+  "비견":"동등한 위치에서의 협력, 자립심", "겁재":"경쟁심과 추진력, 리스크를 감수하는 승부욕",
+  "식신":"여유롭고 안정적인 표현력, 꾸준한 창작·생산", "상관":"재기발랄하고 비판적인 창의력, 틀을 깨는 발상",
+  "편재":"통 큰 자금 운용, 사업 확장과 유동적 자원관리", "정재":"계획적이고 성실한 자산관리, 안정적 수입",
+  "편관":"강한 추진력과 위기대응력, 승부사 기질(칠살)", "정관":"원칙과 책임감, 조직에 대한 신뢰도 높은 적응력",
+  "편인":"독창적 사고와 직관, 정형화되지 않은 학습법", "정인":"학구적이고 안정지향적인 학습, 보호받는 성장",
+};
+// 십신별 진로 성향 (사용자 정의 이론, 5대 분류 기준)
+const CAREER_HINT = {
+  "식상": "개인사업 (소규모 자영업·기술직 자영업)",
+  "재성": "사업가 (재물을 직접 운용하는 사업 확장형)",
+  "관성": "공무원·회사원 (조직·소속에 속한 안정형)",
+  "인성": "교육 관련 분야 (연구·강의·자기계발 지원형)",
+  "비겁": "독립·동업형 (본인 주도로 판을 짜는 유형)",
+};
+// 십신별 전공계열 힌트 (사용자 정의 이론, CAREER_HINT를 대학매칭 화면용으로 확장)
+// ⚠ 절대적 기준이 아닌 참고용 성향입니다. 실제 전공 선택은 학생의 흥미·성적을 함께 고려해야 합니다.
+const MAJOR_FIELD_HINT = {
+  "식상": "손기술·표현력을 살리는 전공 (공학/기술계열, 예체능계열, 콘텐츠·미디어 관련 전공) — 무언가를 직접 만들고 표현하는 실전형 전공에서 강점이 드러나는 편입니다.",
+  "재성": "돈과 자원의 흐름을 다루는 전공 (경영/경제/무역/회계 계열) — 자원을 굴리고 확장하는 감각이 필요한 전공에서 유리합니다.",
+  "관성": "체계와 신뢰를 쌓는 전공 (행정/법정/사회과학 계열) — 조직의 규칙 안에서 꾸준히 인정받는 구조, 공무원·공기업 준비에도 유리한 전공입니다.",
+  "인성": "배우고 가르치는 전공 (교육/인문/어문 계열, 연구직 지향 전공) — 지식을 쌓고 전달하는 학구적인 환경에서 편안함을 느끼는 편입니다.",
+  "비겁": "자기주도형 전공 (경영학, 디자인, IT/창업 연계 전공) — 남 밑에서 정해진 틀을 따르기보다 스스로 판을 짜는 구조에 잘 맞는 전공입니다.",
+};
+// 오행 상생상극 관계만으로 일간 기준 십신 대분류(GROUP5)를 판정 (음양/정편 구분 없이 오행 단위로 판정할 때 사용)
+function elementRelationGroup(dayElem, targetElem){
+  if(targetElem === dayElem) return "비겁";
+  if(GENERATES[targetElem] === dayElem) return "인성";   // target이 일간을 생함
+  if(GENERATES[dayElem] === targetElem) return "식상";   // 일간이 target을 생함
+  if(CONTROLS[dayElem] === targetElem) return "재성";    // 일간이 target을 극함
+  if(CONTROLS[targetElem] === dayElem) return "관성";    // target이 일간을 극함
+  return null;
+}
+/* 용신 오행을 기준으로 진로·전공 적성 해설문을 생성.
+   대학매칭 화면(college-match-ui.js)에서 사용 — 대학 리스트만 나열하지 않고
+   "왜 이 오행 대학군이 이 학생에게 힘이 되는가"를 사주코어의 기존 서술 로직(CAREER_HINT/
+   buildOverviewNarrative와 동일한 패턴)으로 함께 보여주기 위한 함수. */
+function buildCareerFieldNarrative(saju, ys){
+  const dayElem = STEM_ELEM[saju.day.stem];
+  const group5 = elementRelationGroup(dayElem, ys.yongsin);
+  if(!group5) return null;
+  const careerHint = CAREER_HINT[group5];
+  const majorHint = MAJOR_FIELD_HINT[group5];
+  const text = `일간 ${dayElem} 기준으로 용신인 ${ys.yongsin} 기운은 십신상 '${group5}'에 해당합니다. 진로 성향으로는 ${careerHint} 쪽에 힘이 실리며, 전공 계열로는 ${majorHint}`;
+  return { group5, careerHint, majorHint, text };
+}
+
+function analyzeDaewoonCareer(saju, ys){
+  const dayElem = STEM_ELEM[saju.day.stem];
+  const rows = saju.daewoon.map(dw=>{
+    const gz = gzFromIndex(dw.idx);
+    const stemElem = STEM_ELEM[gz.stem];
+    // 흐르는 운은 지지 기준 (2026.11.07 확정): 십신·용신 판정 모두 대운 지지의 오행으로
+    const branchElem = BRANCH_ELEM[gz.branch];
+    const god10 = tenGod10(saju.day.stem, branchElem, gz.branch%2===0);
+    const group5 = GROUP5[god10];
+    const stage = twelveStage(saju.day.stem, gz.branch); // 일간 기준 대운 지지의 12운성
+    const tier = STAGE_TIER[stage];
+    let alignment = "중립";
+    if(branchElem===ys.yongsin || branchElem===ys.huisin) alignment = "길함(용신·희신 해당)";
+    else if(branchElem===ys.gisin) alignment = "주의(병신 해당)";
+    return { startAge:dw.startAge, gzText:`${STEMS[gz.stem]}${BRANCHES[gz.branch]}`, stemElem, branchElem, god10, group5, stage, tier, alignment, careerHint: CAREER_HINT[group5] };
+  });
+
+  // 기운이 가장 강한(=강 tier) 시기들 중 십신 비중이 가장 높은 것을 '타고난 큰 길'로 요약
+  const strongRows = rows.filter(r=>r.tier==="강");
+  const tally = {};
+  strongRows.forEach(r=>{ tally[r.group5] = (tally[r.group5]||0)+1; });
+  let mainPath = null;
+  if(strongRows.length){
+    const topGod = Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0];
+    const periods = strongRows.filter(r=>r.group5===topGod).map(r=>`${r.startAge}세(${r.gzText})`);
+    mainPath = { group5: topGod, careerHint: CAREER_HINT[topGod], periods };
+  }
+  return { rows, mainPath };
+}
+
+/* ===================== 세운 흐름 분석 (십신 × 12운성) ===================== */
+function analyzeSewoonFlow(saju, ys, startYear, count){
+  const rows = [];
+  for(let i=0;i<count;i++){
+    const yr = startYear + i;
+    const age = yr - saju.birthYear + 1;
+    const sy = ((yr-4)%60+60)%60;
+    const stem = sy%10, branch = sy%12;
+    const stemElem = STEM_ELEM[stem];
+    // 흐르는 운은 지지 기준 (2026.11.07 확정)
+    const branchElem = BRANCH_ELEM[branch];
+    const god10 = tenGod10(saju.day.stem, branchElem, branch%2===0);
+    const group5 = GROUP5[god10];
+    const stage = twelveStage(saju.day.stem, branch);
+    const tier = STAGE_TIER[stage];
+    let alignment = "중립";
+    if(branchElem===ys.yongsin || branchElem===ys.huisin) alignment = "길함(용신·희신)";
+    else if(branchElem===ys.gisin) alignment = "주의(병신)";
+    rows.push({ yr, age, stem, branch, gzText:`${STEMS[stem]}${BRANCHES[branch]}`, stemElem, branchElem, god10, group5, stage, tier, alignment });
+  }
+  return rows;
+}
+
+function buildYearNarrative(row, prevRow, ys){
+  const tierText = { "강":"기운이 왕성한", "보통":"완만하게 흐르는", "약":"기운이 잦아드는" };
+  let trend = "";
+  if(prevRow){
+    const order = ["약","보통","강"];
+    const diff = order.indexOf(row.tier) - order.indexOf(prevRow.tier);
+    if(diff>0) trend = `작년(${prevRow.gzText})보다 기운이 상승하는 흐름이며, `;
+    else if(diff<0) trend = `작년(${prevRow.gzText})보다 기운이 가라앉는 흐름이며, `;
+    else trend = `작년(${prevRow.gzText})과 비슷한 세력이 이어지며, `;
+  }
+  return `${row.yr}년(만 ${row.age}세)은 세운 ${row.gzText}년으로, 일간 기준 12운성은 '${row.stage}' — ${tierText[row.tier]} 시기입니다. ${trend}십신으로는 ${row.god10}(${row.group5})에 해당해 ${TEN_GOD_DESC[row.god10]} 성향이 두드러질 수 있습니다. 진로 관점에서는 ${CAREER_HINT[row.group5]} 쪽 기운이 함께 흐르며, 용신 구조상 ${row.alignment}에 해당합니다.`;
+}
+
+/* ===================== 사주 총평 해설 ===================== */
+const ELEM_TRAIT = {
+  "목":"성장과 확장을 지향하며 진취적이고 유연한",
+  "화":"표현력과 열정이 강하고 밝고 적극적인",
+  "토":"신뢰와 포용력이 있고 중심을 잡아주는 안정적인",
+  "금":"원칙과 결단력이 뚜렷하고 맺고 끊음이 분명한",
+  "수":"지혜와 유연성을 갖추고 상황에 잘 적응하는",
+};
+function buildOverviewNarrative(saju, ys){
+  const dayElem = STEM_ELEM[saju.day.stem];
+  const strongDesc = ys.isStrong
+    ? "본인 스스로의 힘(비겁·인성)이 강한 신강 사주로, 주체적이고 자기 주도적인 경향이 두드러집니다."
+    : "본인을 돕는 힘보다 소모되는 힘(식상·재성·관성)이 강한 신약 사주로, 주변 환경·관계 속에서 힘을 얻는 유형입니다.";
+  return `일간은 ${STEMS[saju.day.stem]}(${dayElem}) — ${ELEM_TRAIT[dayElem]} 기운을 타고났습니다. ${strongDesc} 오행 중 ${ys.strongest} 기운이 가장 강하고 ${ys.weakest} 기운이 가장 약해, 억부이론상 ${ys.yongsin} 기운을 용신으로 삼아 균형을 맞추는 것이 핵심 과제입니다.${ys.johuNote? ' '+ys.johuNote:''}`;
+}
+
+/* ===================== 신살(神殺) 판정 (전통 명리학 공개 이론) ===================== */
+// 천을귀인: 일간 기준 특정 지지가 있으면 성립 (갑무경-축미, 을기-자신, 병정-해유, 임계-묘사, 신-오인)
+function cheoneulBranches(dayStemIdx){
+  if([0,4,6].includes(dayStemIdx)) return [1,7];
+  if([1,5].includes(dayStemIdx)) return [0,8];
+  if([2,3].includes(dayStemIdx)) return [11,9];
+  if([8,9].includes(dayStemIdx)) return [3,5];
+  if(dayStemIdx===7) return [6,2];
+}
+// 삼합 그룹별 도화·역마·화개 (왕지=도화 기준 공개 산출식)
+const SINSAL_BY_ELEM = {
+  "목": {dohwa:0, yeokma:5, hwagae:7},
+  "화": {dohwa:3, yeokma:8, hwagae:10},
+  "금": {dohwa:6, yeokma:11, hwagae:1},
+  "수": {dohwa:9, yeokma:2, hwagae:4},
+};
+function samhapGroupOfBranch(branchIdx){
+  for(const def of SAMHAP){ if(def.branches.includes(branchIdx)) return def.elem; }
+}
+const GOEGANG_IDX = [16,28,34,46]; // 경진 임진 무술 경술
+const YANGIN_MAP = {0:3, 2:6, 4:6, 6:9, 8:0}; // 갑->묘, 병/무->오, 경->유, 임->자 (양간만 해당)
+
+function analyzeSinsal(saju, hasTime){
+  const branches = [saju.year.branch, saju.month.branch, saju.day.branch];
+  if(hasTime) branches.push(saju.hour.branch);
+  const found = [];
+
+  // 천을귀인
+  const cheoneul = cheoneulBranches(saju.day.stem);
+  if(cheoneul && cheoneul.some(b=>branches.includes(b))){
+    found.push({ name:"천을귀인(天乙貴人)", desc:"어려운 상황에서 귀인의 도움을 받기 쉬운 대표적 길신입니다." });
+  }
+  // 도화/역마/화개 (일지 기준)
+  const group = samhapGroupOfBranch(saju.day.branch);
+  if(group){
+    const t = SINSAL_BY_ELEM[group];
+    if(branches.includes(t.dohwa)) found.push({ name:"도화살(桃花殺)", desc:"매력과 인기, 대인관계에서 주목받는 기운입니다. 이성 관련 구설로 이어지기도 합니다." });
+    if(branches.includes(t.yeokma)) found.push({ name:"역마살(驛馬殺)", desc:"이동·변화가 잦고 타지·해외와 인연이 깊은 기운입니다." });
+    if(branches.includes(t.hwagae)) found.push({ name:"화개살(華蓋殺)", desc:"예술·종교·학문 등 정신적 영역에 몰입하는 기운으로, 고독을 동반하기도 합니다." });
+  }
+  // 괴강살 (일주 기준)
+  const dayIdx = findGZIndex(saju.day.stem, saju.day.branch);
+  if(GOEGANG_IDX.includes(dayIdx)){
+    found.push({ name:"괴강살(魁罡殺)", desc:"극단적인 총명함과 강한 카리스마를 지니지만 인생의 기복이 큰 편입니다." });
+  }
+  // 양인살 (일간 기준, 양간만 해당)
+  if(YANGIN_MAP[saju.day.stem]!==undefined && branches.includes(YANGIN_MAP[saju.day.stem])){
+    found.push({ name:"양인살(羊刃殺)", desc:"강한 추진력과 결단력, 날카로운 승부근성을 상징합니다. 과격함을 절제하는 것이 관건입니다." });
+  }
+  // 공망 (일주 순중공망)
+  const groupStart = Math.floor(dayIdx/10)*10;
+  const branchAtStart = groupStart%12;
+  const gongmangBranches = [(branchAtStart+10)%12, (branchAtStart+11)%12];
+  const gongmangHit = [saju.year.branch, saju.month.branch, hasTime?saju.hour.branch:null].filter(b=>b!==null && gongmangBranches.includes(b));
+  if(gongmangHit.length){
+    found.push({ name:"공망(空亡)", desc:`해당 지지(${gongmangHit.map(b=>BRANCHES[b]).join('·')})가 상징하는 자리의 기운이 공허해지기 쉬워, 집착보다 초연함이 필요한 영역입니다.` });
+  }
+  return found;
+}
+
+/* ===================== 십신 × 12운성 강도 결합 (통근 강도 분석) ===================== */
+// 각 기둥의 천간이 '자기 자신의 기준'으로 자기 지지에서 몇 단계 12운성인지 계산 → 통근(뿌리) 강도
+function analyzePillarStrength(saju, hasTime){
+  const pillars = [
+    { name:"년주", stem:saju.year.stem, branch:saju.year.branch, isDay:false },
+    { name:"월주", stem:saju.month.stem, branch:saju.month.branch, isDay:false },
+    { name:"일주", stem:saju.day.stem, branch:saju.day.branch, isDay:true },
+  ];
+  if(hasTime) pillars.push({ name:"시주", stem:saju.hour.stem, branch:saju.hour.branch, isDay:false });
+
+  const rows = pillars.map(p=>{
+    const stemElem = STEM_ELEM[p.stem];
+    const god10 = p.isDay ? "일간(본인)" : tenGod10(saju.day.stem, stemElem, p.stem%2===0);
+    const group5 = p.isDay ? "비겁" : GROUP5[god10];
+    const stage = twelveStage(p.stem, p.branch); // 통근: 천간 자체 기준 12운성
+    const tier = STAGE_TIER[stage];
+    return { name:p.name, gzText:`${STEMS[p.stem]}${BRANCHES[p.branch]}`, god10, group5, stage, tier };
+  });
+
+  const scoreMap = {"강":2,"보통":1,"약":0};
+  const groupScore = {"비겁":0,"식상":0,"재성":0,"관성":0,"인성":0};
+  rows.forEach(r=>{ groupScore[r.group5]+=scoreMap[r.tier]; });
+  const dominant = Object.keys(groupScore).sort((a,b)=>groupScore[b]-groupScore[a])[0];
+  return { rows, groupScore, dominant };
+}
+
+/* ===================== 외부 공개 (모듈 export) ===================== */
+(function(root){
+  const SajuCore = {
+    // 기초 데이터
+    STEMS, STEMS_HAN, BRANCHES, BRANCHES_HAN,
+    STEM_ELEM, BRANCH_ELEM, ELEM_COLOR,
+    GENERATES, CONTROLS, GROUP5, TEN_GOD_DESC, CAREER_HINT, MAJOR_FIELD_HINT,
+    elementRelationGroup, buildCareerFieldNarrative,
+    // 간지 유틸
+    gzFromIndex, findGZIndex,
+    // 사주 산출 (+ 서머타임·옛 표준시 보정)
+    computeSaju, normalizeToKST, ENGINE_VERSION: 'v2026.11.07b',
+    // 용신(억부·조후·통관·병약) 분석
+    computeYongsin,
+    // 십신 / 12운성
+    tenGod10, twelveStage,
+    // 신살
+    analyzeSinsal,
+    // 통근 강도 / 대운 진로 / 세운 흐름
+    analyzePillarStrength, analyzeDaewoonCareer, analyzeSewoonFlow,
+    // 해설문 생성
+    buildOverviewNarrative, buildYearNarrative,
+  };
+  root.SajuCore = SajuCore;
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SajuCore; // Node/서버 환경(추후 백엔드 검증용)에서도 재사용 가능
+  }
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>/* engine/saju-flow.js */
+/* ============================================================
+   saju-flow.js — 평생앱용 운의 흐름 계산 (대운·세운·월운)
+   -------------------------------------------------------------
+   saju-core.js(통일본) 위에서 동작한다. saju-core.js 원본은 고치지 않는다.
+
+   대표님 확정 이론
+     - 원국(태어난 사주, '나')은 일간 기준으로 본다. → saju-core 그대로
+     - 흐르는 운(대운·세운·월운)의 십성과 4신 판정은 천간이 아니라 "지지" 기준으로 본다.
+       (saju-core의 analyzeSewoonFlow는 천간 기준이므로 평생앱에서는 이 모듈을 쓴다)
+     - 4신: 희신=용신을 생, 병신=용신을 극, 약신=병신을 극. 나머지 한 오행은 NEUTRAL.
+     - 지지 음양은 saju-core의 tenGod10 규칙(짝수 인덱스=양)을 그대로 따른다.
+
+   절기 경계(입춘, 매달 절입일)는 saju-core.computeSaju를 날짜별로 호출해
+   월주·연주가 바뀌는 날을 찾는 방식으로 구한다 (엔진과 경계가 항상 일치).
+   ============================================================ */
+(function (root, factory) {
+  const SajuFlow = factory(root.SajuCore || (typeof require !== 'undefined' ? require('./saju-core.js') : null));
+  root.SajuFlow = SajuFlow;
+  if (typeof module !== 'undefined' && module.exports) module.exports = SajuFlow;
+})(typeof self !== 'undefined' ? self : this, function (S) {
+  if (!S) throw new Error('saju-core.js를 먼저 불러와야 합니다');
+
+  const ENGINE_VERSION = S.ENGINE_VERSION || 'v2026.11.07b';
+  const FLOW_VERSION = 'flow-v1';
+  const ROLE_LABEL = { YONGSIN: '용신', HUISIN: '희신', BYEONGSIN: '병신', YAKSIN: '약신', NEUTRAL: '중립' };
+
+  const pad = n => String(n).padStart(2, '0');
+  const iso = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
+  function addDays(y, m, d, n) {
+    const t = new Date(Date.UTC(y, m - 1, d) + n * 864e5);
+    return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() };
+  }
+  // 그날 끝(23:29, 정자시 날짜 넘김 직전) 기준 연주·월주 — 그날 안에 절기가 들어오면 그날이 시작일
+  // (서머타임 시기라도 23:29 → 22:29로 같은 날 안에서만 당겨지므로 날짜 판정에는 영향 없음)
+  function pillarsOn(y, m, d) {
+    const s = S.computeSaju(y, m, d, 23, 29, true, 'M');
+    return { year: s.year, month: s.month };
+  }
+
+  /** 4신 역할: 오행이 용신·희신·병신·약신 중 무엇인지 */
+  function godRole(elem, ys) {
+    if (elem === ys.yongsin) return 'YONGSIN';
+    if (elem === ys.huisin) return 'HUISIN';
+    if (elem === ys.gisin) return 'BYEONGSIN';   // saju-core 변수명 gisin = 병신
+    if (elem === ys.gusin) return 'YAKSIN';      // saju-core 변수명 gusin = 약신
+    return 'NEUTRAL';
+  }
+
+  /** 지지 하나를 일간 기준으로 풀이 (지지 기준 십성·4신·12운성) */
+  function readBranch(saju, ys, stem, branch) {
+    const branchElem = S.BRANCH_ELEM[branch];
+    const tenGod = S.tenGod10(saju.day.stem, branchElem, branch % 2 === 0);
+    const role = godRole(branchElem, ys);
+    return {
+      stem, branch,
+      gzText: S.STEMS[stem] + S.BRANCHES[branch],
+      gzHan: S.STEMS_HAN[stem] + S.BRANCHES_HAN[branch],
+      branchElem, tenGod, group5: S.GROUP5[tenGod],
+      godRole: role, godRoleLabel: ROLE_LABEL[role],
+      twelveStage: S.twelveStage(saju.day.stem, branch),
+    };
+  }
+
+  /** 그 해 입춘일 (연주가 바뀌는 날) */
+  function ipchunDate(year) {
+    let prev = pillarsOn(year, 1, 31).year.branch;
+    for (let i = 1; i <= 14; i++) {
+      const d = addDays(year, 1, 31, i);
+      const b = pillarsOn(d.y, d.m, d.d).year.branch;
+      if (b !== prev) return iso(d.y, d.m, d.d);
+      prev = b;
+    }
+    throw new Error('입춘을 찾지 못함 ' + year);
+  }
+
+  /** 양력 y년 m월의 절입일과 그 절기월의 간지 (절입일은 보통 4~8일) */
+  function solarMonth(y, m) {
+    let prev = pillarsOn(y, m, 1);
+    for (let d = 2; d <= 12; d++) {
+      const cur = pillarsOn(y, m, d);
+      if (cur.month.branch !== prev.month.branch) {
+        return { start: iso(y, m, d), stem: cur.month.stem, branch: cur.month.branch };
+      }
+      prev = cur;
+    }
+    throw new Error(`절입일을 찾지 못함 ${y}-${m}`);
+  }
+
+  /** 대운: 실제 시작일·종료일 포함 */
+  function daewoonRows(saju, ys, birthIso) {
+    const [by, bm, bd] = birthIso.split('-').map(Number);
+    const daysPerYear = 365.2425;
+    return saju.daewoon.map((dw, i) => {
+      const gz = S.gzFromIndex(dw.idx);
+      const startAgeExact = saju.dwStartAgeExact + 10 * i;
+      const s = addDays(by, bm, bd, Math.round(startAgeExact * daysPerYear));
+      const e = addDays(by, bm, bd, Math.round((startAgeExact + 10) * daysPerYear) - 1);
+      return Object.assign(readBranch(saju, ys, gz.stem, gz.branch), {
+        sequenceNo: i + 1,
+        startAge: Math.round(startAgeExact * 100) / 100,
+        startAgeLabel: `만 ${Math.floor(startAgeExact)}세 ${Math.floor((startAgeExact % 1) * 12)}개월`,
+        startDate: iso(s.y, s.m, s.d), endDate: iso(e.y, e.m, e.d),
+      });
+    });
+  }
+
+  /** 세운: fromYear부터 count년 (입춘 기준 시작·종료일) */
+  function sewoonRows(saju, ys, fromYear, count) {
+    const rows = [];
+    for (let i = 0; i < count; i++) {
+      const yr = fromYear + i;
+      const gz = S.gzFromIndex(((yr - 4) % 60 + 60) % 60);
+      const start = ipchunDate(yr);
+      const nextStart = ipchunDate(yr + 1).split('-').map(Number);
+      const e = addDays(nextStart[0], nextStart[1], nextStart[2], -1);
+      rows.push(Object.assign(readBranch(saju, ys, gz.stem, gz.branch), {
+        targetYear: yr, startDate: start, endDate: iso(e.y, e.m, e.d),
+      }));
+    }
+    return rows;
+  }
+
+  /** 월운: (fromYear, fromMonth)부터 count개월. 양력 월에 시작하는 절기월 기준 */
+  function wolwoonRows(saju, ys, fromYear, fromMonth, count) {
+    const rows = [];
+    let y = fromYear, m = fromMonth;
+    let cur = solarMonth(y, m);
+    for (let i = 0; i < count; i++) {
+      const ny = m === 12 ? y + 1 : y, nm = m === 12 ? 1 : m + 1;
+      const next = solarMonth(ny, nm);
+      const [ey, em, ed] = next.start.split('-').map(Number);
+      const e = addDays(ey, em, ed, -1);
+      rows.push(Object.assign(readBranch(saju, ys, cur.stem, cur.branch), {
+        targetYear: y, targetMonth: m, startDate: cur.start, endDate: iso(e.y, e.m, e.d),
+      }));
+      y = ny; m = nm; cur = next;
+    }
+    return rows;
+  }
+
+  /**
+   * 한 사람의 전체 분석 묶음 — DB(saju_result + saju_pillar/daewoon/sewoon/wolwoon)와 리포트가 같이 쓴다.
+   * @param {object} p { birthDate:'YYYY-MM-DD', birthTime:'HH:MM'|null, gender:'M'|'F' }
+   * @param {object} opt { asOf:'YYYY-MM-DD', sewoonYears:12, wolwoonMonths:12 }
+   */
+  function analyze(p, opt = {}) {
+    const [y, m, d] = p.birthDate.split('-').map(Number);
+    const hasTime = !!p.birthTime;
+    const [hh, mi] = hasTime ? p.birthTime.split(':').map(Number) : [0, 0];
+    const saju = S.computeSaju(y, m, d, hh, mi, hasTime, p.gender);
+    const ys = S.computeYongsin(saju, hasTime);
+    const asOf = (opt.asOf || new Date().toISOString().slice(0, 10)).split('-').map(Number);
+
+    const pillarDefs = [['YEAR', saju.year], ['MONTH', saju.month], ['DAY', saju.day]];
+    if (hasTime) pillarDefs.push(['HOUR', saju.hour]);
+    const pillars = pillarDefs.map(([type, pl]) => ({
+      pillarType: type, stem: pl.stem, branch: pl.branch,
+      gzText: S.STEMS[pl.stem] + S.BRANCHES[pl.branch],
+      gzHan: S.STEMS_HAN[pl.stem] + S.BRANCHES_HAN[pl.branch],
+      // 원국은 일간 기준 (일주의 천간은 '나' 자신)
+      tenGodStem: type === 'DAY' ? '일간' : S.tenGod10(saju.day.stem, S.STEM_ELEM[pl.stem], pl.stem % 2 === 0),
+      tenGodBranch: S.tenGod10(saju.day.stem, S.BRANCH_ELEM[pl.branch], pl.branch % 2 === 0),
+      twelveStage: S.twelveStage(saju.day.stem, pl.branch),
+    }));
+
+    return {
+      engineVersion: ENGINE_VERSION,
+      flowVersion: FLOW_VERSION,
+      inputSnapshot: {
+        birth_date: p.birthDate, birth_time: p.birthTime || null, gender: p.gender,
+        timezone: 'Asia/Seoul', calendar: 'SOLAR',
+        jasi_mode: 'JEONGJASI', jasi_day_boundary: '23:30', hour_branch_offset_min: 30,
+        engine: 'saju-core.js ' + ENGINE_VERSION, flow: FLOW_VERSION,
+      },
+      saju, ys,
+      fourGods: { yongsin: ys.yongsin, huisin: ys.huisin, byeongsin: ys.gisin, yaksin: ys.gusin },
+      isStrong: ys.isStrong,
+      dayMaster: { stem: saju.day.stem, text: S.STEMS[saju.day.stem], elem: S.STEM_ELEM[saju.day.stem] },
+      pillars,
+      daewoon: daewoonRows(saju, ys, p.birthDate),
+      sewoon: sewoonRows(saju, ys, asOf[0], opt.sewoonYears || 12),
+      wolwoon: wolwoonRows(saju, ys, asOf[0], asOf[1], opt.wolwoonMonths || 12),
+    };
+  }
+
+  /** 오늘 기준 현재 대운·세운·월운 한 줄씩 */
+  function current(a, todayIso) {
+    const t = todayIso || new Date().toISOString().slice(0, 10);
+    const pick = rows => rows.find(r => r.startDate <= t && t <= r.endDate) || null;
+    return { daewoon: pick(a.daewoon), sewoon: pick(a.sewoon), wolwoon: pick(a.wolwoon) };
+  }
+
+  return { ENGINE_VERSION, FLOW_VERSION, ROLE_LABEL, analyze, current, godRole, readBranch, ipchunDate, solarMonth };
+});
+
+</script>
+<script>/* engine/life-stage.js */
+/* ============================================================
+   life-stage.js — 생애 단계 계산 (DB의 compute_stage()와 같은 규칙)
+   규칙을 바꾸면 supabase/migrations 의 compute_stage()도 같이 고칠 것.
+
+   BIRTH_NAMING : 출생일 ~ 백일 전날 (백일 = 출생일 + 99일, 태어난 날을 1일로 셈)
+   INFANT       : 백일 ~ 유치원 입학일 전날 (유치원 입학 = 초등입학일 - 3년, 만3세반)
+   KINDERGARTEN : 유치원 입학일 ~ 초등입학일 전날
+   ELEMENTARY   : 초등입학일 ~ 6년 뒤 전날 (매년 3월 1일 학년 증가)
+   FUTURE       : 그 이후 (중학교 이후 — 2차 개발)
+   초등입학일 기본값 = 출생연도 + 7년의 3월 1일 (1~12월생 같은 학년). 조기입학·유예는 부모가 수정.
+   ============================================================ */
+(function (root, factory) {
+  const m = factory(); root.LifeStage = m;
+  if (typeof module !== 'undefined' && module.exports) module.exports = m;
+})(typeof self !== 'undefined' ? self : this, function () {
+  const RULE_VERSION = 'stage-rule-v1';
+  const STAGES = {
+    BIRTH_NAMING: { label: '출생·작명', short: '출생', order: 1 },
+    INFANT: { label: '영유아', short: '영유아', order: 2 },
+    KINDERGARTEN: { label: '유치원', short: '유치원', order: 3 },
+    ELEMENTARY: { label: '초등학교', short: '초등', order: 4 },
+    FUTURE: { label: '중학교 이후', short: '중등+', order: 5 },
+  };
+  const STAGE_MODULES = {
+    BIRTH_NAMING: ['NAMING', 'VACCINE_GUIDE', 'INFANT_CHECKLIST'],
+    INFANT: ['VACCINE_GUIDE', 'INFANT_CHECKLIST', 'DAYCARE_FINDER'],
+    KINDERGARTEN: ['VACCINE_GUIDE', 'KINDER_FINDER', 'ACADEMY_GUIDE', 'ELEM_PREVIEW'],
+    ELEMENTARY: ['ELEM_MATCH', 'ACADEMY_GUIDE'],
+    FUTURE: [],
+  };
+
+  const toUTC = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+  const fromUTC = t => new Date(t).toISOString().slice(0, 10);
+  const addYears = (s, n) => { const [y, m, d] = s.split('-').map(Number); return `${y + n}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`; };
+
+  function defaultElementaryEntry(birthIso) { return `${Number(birthIso.slice(0, 4)) + 7}-03-01`; }
+
+  function compute(birthIso, onIso, entryIso) {
+    const entry = entryIso || defaultElementaryEntry(birthIso);
+    const baekil = fromUTC(toUTC(birthIso) + 99 * 864e5);
+    const kinder = addYears(entry, -3);
+    const done = addYears(entry, 6);
+    let stage, grade = null;
+    if (onIso < baekil) stage = 'BIRTH_NAMING';
+    else if (onIso < kinder) stage = 'INFANT';
+    else if (onIso < entry) stage = 'KINDERGARTEN';
+    else if (onIso < done) {
+      stage = 'ELEMENTARY';
+      const years = Number(onIso.slice(0, 4)) - Number(entry.slice(0, 4)) - (onIso.slice(5) < entry.slice(5) ? 1 : 0);
+      grade = years + 1;
+    } else stage = 'FUTURE';
+    return {
+      stage, grade, label: STAGES[stage].label + (grade ? ` ${grade}학년` : ''),
+      modules: STAGE_MODULES[stage].concat(stage === 'ELEMENTARY' && grade === 6 && Number(onIso.slice(5, 7)) >= 9 ? ['MIDDLE_PREP'] : []),
+      milestones: { baekil, doljanchi: addYears(birthIso, 1), kindergartenEntry: kinder, elementaryEntry: entry, middleEntry: done },
+      ageMonths: Math.floor((toUTC(onIso) - toUTC(birthIso)) / (864e5 * 30.4375)),
+      ruleVersion: RULE_VERSION,
+    };
+  }
+  return { RULE_VERSION, STAGES, STAGE_MODULES, compute, defaultElementaryEntry };
+});
+
+</script>
+<script>/* engine/life-tasks.js */
+/* ============================================================
+   life-tasks.js — 생년월일로 만드는 할 일 일정 (앱·월간 리포트 공용)
+   출처: 「태어나서 돌까지 체크리스트」「초등학교 입학 직전 준비」 문서
+   접종·검진 시기는 질병관리청 표준 일정 기준의 대략치. 정확한 날짜는 예방접종도우미 확인.
+   ============================================================ */
+(function(root, factory){
+  const m = factory(root.LifeStage || (typeof require!=='undefined' ? require('./life-stage.js') : null));
+  root.LifeTasks = m; if (typeof module!=='undefined' && module.exports) module.exports = m;
+})(typeof self!=='undefined' ? self : this, function(L){
+const pad = n => String(n).padStart(2,'0');
+const toUTC = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y,m-1,d); };
+const fromUTC = t => new Date(t).toISOString().slice(0,10);
+const addDays = (s,n) => fromUTC(toUTC(s)+n*864e5);
+function addMonths(s,n){ const [y,m,d]=s.split('-').map(Number); const t=new Date(Date.UTC(y,m-1+n,1)); const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0)).getUTCDate(); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth()+1)}-${pad(Math.min(d,last))}`; }
+const VAX = [
+  ['B형간염 1차',0,0,'출생 후 12시간 이내'],['BCG(결핵)',0,1,'생후 4주 이내'],['B형간염 2차',1,1,''],
+  ['2개월 기본접종',2,2,'DTaP·IPV·Hib·폐렴구균·로타 1차'],['4개월 기본접종',4,4,'2개월 접종의 2차'],
+  ['6개월 기본접종',6,6,'DTaP·Hib·폐렴구균 3차, B형간염 3차, IPV 3차(6~18개월)'],['첫 독감 접종',6,12,'처음 맞는 해에는 4주 간격 2회, 이후 매년 가을'],
+  ['MMR·수두, Hib·폐렴구균 추가',12,15,''],['A형간염 1차',12,23,'2차는 6개월 이상 간격'],['일본뇌염 시작',12,23,'백신 종류에 따라 횟수가 다름'],
+  ['DTaP 4차',15,18,''],['4~6세 추가접종',48,72,'DTaP 5차·IPV 4차·MMR 2차'],['일본뇌염 추가',72,83,'만 6세'],
+];
+const CHECKUP = [['1차',null,null,14,35],['2차',4,6],['3차',9,12],['4차',18,24],['5차',30,36],['6차',42,48],['7차',54,60],['8차',66,71]];
+const ORAL = [['1차',18,29],['2차',30,41],['3차',42,53],['4차',54,65]];
+function build(k, today){
+  const b=k.birth, st=L.compute(b, today, k.entry), m=st.milestones, entry=m.elementaryEntry, ey=Number(entry.slice(0,4)), ky=Number(m.kindergartenEntry.slice(0,4));
+  const T=[]; const add=(id,cat,title,from,to,note,link)=>T.push({id,cat,title,from,to:to||from,note:note||'',link});
+  add('reg','행정','출생신고',b,addDays(addMonths(b,1),-1),'출생일로부터 1개월 이내 · 행정복지센터 또는 정부24 · 기한이 지나면 과태료');
+  add('onestop','행정','부모급여·아동수당·첫만남이용권 신청',b,addDays(addMonths(b,1),-1),'출생신고 때 "행복출산 원스톱 서비스"로 한 번에 · 금액은 신청 시점에 확인');
+  add('nipreg','행정','예방접종도우미에 아이 등록',b,addDays(b,14),'접종 알림을 받을 수 있어요','vaccine');
+  VAX.forEach(([t,f,to,n],i)=>add('vax'+i,'접종',t,f===0&&to===0?b:addMonths(b,f),addDays(addMonths(b,to+1),-1),n+(n?' · ':'')+'정확한 날짜는 예방접종도우미와 소아청소년과에서 확인','vaccine'));
+  CHECKUP.forEach(([t,f,to,d1,d2])=>add('chk'+t,'검진',`영유아 건강검진 ${t}`, d1!=null?addDays(b,d1-1):addMonths(b,f), d2!=null?addDays(b,d2-1):addDays(addMonths(b,to+1),-1), '무료 · 기간이 지나면 그 차수는 받을 수 없어요'));
+  ORAL.forEach(([t,f,to])=>add('oral'+t,'검진',`영유아 구강검진 ${t}`,addMonths(b,f),addDays(addMonths(b,to+1),-1),'치과에서 따로 · 무료'));
+  add('dolbook','준비','돌잔치 장소 예약',addMonths(m.doljanchi,-6),addMonths(m.doljanchi,-3),'실제 돌 전후 주말 · 12개월 접종·검진 3차와 겹치지 않게');
+  add('dol','준비','돌',m.doljanchi,m.doljanchi,'');
+  add('daycare','기관','어린이집 입소대기 신청',addMonths(b,12),addMonths(b,24),'아이사랑 누리집','childcare');
+  add('pgend','행정','부모급여 종료 → 보육료·양육수당 전환 확인',addMonths(b,24),addDays(addMonths(b,25),-1),'');
+  add('firstschool','기관','유치원 모집(처음학교로) 확인',`${ky-1}-10-01`,`${ky-1}-11-30`,`${ky}년 3월 만 3세반 입학 기준 · 지역마다 일정이 달라요`,'kinder');
+  add('kinder','기관','유치원 만 3세반 입학',m.kindergartenEntry,m.kindergartenEntry,'어린이집에 계속 다녀도 괜찮아요');
+  add('defer','입학',`입학 연기·조기입학 신청 기간`,`${ey-1}-10-01`,`${ey-1}-12-31`,'주소지 행정복지센터 · 12월 31일 마감 · 발달 고민은 소아청소년과·담임과 먼저 상담');
+  add('notice','입학','취학통지서 받기',`${ey-1}-12-01`,`${ey-1}-12-20`,'정부24 온라인 발급(세대주, PC) 또는 주민센터 · 날짜는 지역마다 달라요');
+  add('presummon','입학','예비소집 참석',`${ey}-01-01`,`${ey}-01-15`,'보통 1월 초, 배정 학교 공지 확인 · 대면 원칙','schoolzone');
+  add('vax4','입학','취학 전 필수 접종 4종 전산 등록 확인',`${ey}-01-01`,`${ey}-02-28`,'DTaP 5차, IPV 4차, MMR 2차, 일본뇌염','vaccine');
+  add('dolbom','입학','돌봄교실·방과후 신청',`${ey}-01-01`,`${ey}-02-15`,'신청 기간이 짧아요 · 예비소집 때 서류 받기');
+  add('acad','입학','학원 일정을 초등 시간표에 맞추기',`${ey}-02-01`,`${ey}-02-28`,'');
+  add('entry','입학','초등학교 입학',entry,entry,'');
+  add('middle','입학','중학교 준비 시작 (6학년 2학기)',`${ey+5}-09-01`,`${ey+5}-12-31`,'중학교 이후 단계는 다음 버전에서 열려요');
+  const t=today;
+  T.forEach(x=>{ x.done=!!(k.done&&k.done[x.id]); x.when = t> x.to ? 'past' : t>=x.from ? 'now' : (toUTC(x.from)-toUTC(t))/864e5<=90 ? 'soon' : 'later'; x.status = x.done?'done':x.when; });
+  return T.sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0);
+}
+
+return { VAX, CHECKUP, ORAL, build, addDays, addMonths };
+});
+
+</script>
+<script>/* engine/monthly-report.js */
+/* ============================================================
+   monthly-report.js — 월간 성장 리포트 조립 (앱 미리보기 · 서버 PDF 공용)
+   -------------------------------------------------------------
+   입력: 아이 {name, birth, time, gender, entry}, 리포트 달 'YYYY-MM', 오늘 'YYYY-MM-DD'
+   계산: saju-flow(월운·세운·대운, 지지 기준) + life-stage(단계) + life-tasks(이달 할 일)
+   본문은 사주 용어 없이 부모가 읽는 말로, 근거는 끝의 "심명 풀이"에만 둔다.
+
+   ※ 아래 문구 표(GROUP_TEXT, ROLE_TEXT 등)는 초안이다.
+     대표님 원자료(초등 12개월 로드맵 마스터문서 V2.0, saju-tier-guide.js, saju-core-ext.js의
+     형충파해·GOD_GUIDE)가 들어오면 그 문구로 바꿔 끼운다. 구조와 키는 그대로 둔다.
+   ============================================================ */
+(function (root, factory) {
+  const req = n => (typeof require !== 'undefined' ? require(n) : null);
+  const m = factory(root.SajuCore || req('./saju-core.js'), root.SajuFlow || req('./saju-flow.js'),
+                    root.LifeStage || req('./life-stage.js'), root.LifeTasks || req('./life-tasks.js'));
+  root.MonthlyReport = m; if (typeof module !== 'undefined' && module.exports) module.exports = m;
+})(typeof self !== 'undefined' ? self : this, function (S, F, L, T) {
+  const REPORT_VERSION = 'report-v0.1-draft';
+  const pad = n => String(n).padStart(2, '0');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const lastDay = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+  /* ---------- 문구 표 (초안) ---------- */
+  // 단계 묶음: 영유아(출생·작명 포함) / 유치원 / 초등
+  const STAGE_BUCKET = { BIRTH_NAMING: 'infant', INFANT: 'infant', KINDERGARTEN: 'kinder', ELEMENTARY: 'elem', FUTURE: 'elem' };
+  // 이달 흐르는 기운(월운 지지의 십신 묶음) → 이달의 주제와 단계별 제안
+  const GROUP_TEXT = {
+    비겁: { theme: '스스로 해 보려는 마음이 커지는 달',
+      infant: ['혼자 해 보려는 몸짓을 기다려 주세요. 숟가락, 양말처럼 작은 것부터요.', '"내가!"가 늘어도 괜찮아요. 안전한 범위에서 선택지를 두 개 주세요.'],
+      kinder: ['옷 고르기, 가방 챙기기처럼 스스로 정하는 일을 하나 맡겨 보세요.', '친구와 경쟁하는 놀이에서 지면 속상해할 수 있어요. 끝까지 해 본 것을 칭찬해 주세요.'],
+      elem: ['스스로 세운 계획표로 한 주를 지내 보게 해 주세요. 결과보다 지킨 날을 세어 주세요.', '고집이 세 보일 수 있어요. 이유를 먼저 듣고 함께 정한 약속을 지키게 해 주세요.'] },
+    식상: { theme: '표현하고 움직이고 싶은 마음이 커지는 달',
+      infant: ['옹알이·몸짓에 말로 대답해 주세요. 노래와 손유희가 잘 맞는 시기예요.', '바깥 산책 시간을 조금 늘려 보세요.'],
+      kinder: ['그리기, 만들기, 역할놀이처럼 표현하는 놀이를 늘려 보세요.', '에너지가 넘칠 수 있어요. 몸을 쓰는 시간을 하루 한 번 꼭 넣어 주세요.'],
+      elem: ['발표, 일기, 만들기처럼 생각을 밖으로 꺼내는 활동이 잘 맞아요.', '말이 많아지고 반박이 늘 수 있어요. 끝까지 들어 준 뒤 이야기해 주세요.'] },
+    재성: { theme: '친구와 바깥 세상에 관심이 커지는 달',
+      infant: ['또래가 있는 놀이터나 문화센터에 나가 보기 좋은 때예요.', '새 장난감보다 집 안 물건을 탐색하게 해 주세요.'],
+      kinder: ['친구와 함께하는 놀이 약속을 잡아 보세요.', '물건 나누기, 차례 지키기를 놀이로 연습해 보세요.'],
+      elem: ['용돈 기록, 장보기처럼 생활 속 셈과 계획을 해 보기 좋아요.', '친구 관계가 넓어지는 달이에요. 누구와 노는지 편하게 물어봐 주세요.'] },
+    관성: { theme: '규칙과 차례를 익히기 좋은 달',
+      infant: ['먹고 자는 시간을 일정하게 맞추기 좋은 때예요.', '새로운 사람·장소보다 익숙한 일과가 편할 수 있어요.'],
+      kinder: ['정리 정돈, 손 씻기 같은 생활 규칙을 하나씩 익혀 보세요.', '선생님 말씀을 잘 따르는 만큼 긴장할 수 있어요. 집에서는 편하게 풀어 주세요.'],
+      elem: ['숙제와 준비물을 스스로 챙기는 습관을 들이기 좋은 달이에요.', '평가나 꾸중에 예민할 수 있어요. 잘한 점을 먼저 말해 주세요.'] },
+    인성: { theme: '배우고 받아들이는 힘이 커지는 달',
+      infant: ['그림책을 함께 보는 시간을 늘려 보세요. 같은 책을 반복해도 좋아요.', '안아 주고 눈 맞추는 시간이 큰 힘이 되는 시기예요.'],
+      kinder: ['궁금한 것을 끝까지 함께 찾아보세요. 도서관 나들이가 잘 맞아요.', '혼자 몰입하는 시간을 방해하지 않게 해 주세요.'],
+      elem: ['독서, 탐구, 새 과목 예습처럼 받아들이는 공부가 잘 되는 달이에요.', '생각이 많아질 수 있어요. 잠들기 전 이야기 시간을 가져 보세요.'] },
+  };
+  // 이달 기운이 아이에게 어떤 역할인지(4신)
+  const ROLE_TEXT = {
+    YONGSIN: { label: '힘이 나는 달', tone: 'good', text: '아이에게 필요한 기운이 들어오는 달이에요. 새로 시작하거나 도전해 보기 좋아요.' },
+    HUISIN: { label: '힘이 나는 달', tone: 'good', text: '아이를 돕는 기운이 들어오는 달이에요. 하던 일을 꾸준히 이어 가기 좋아요.' },
+    YAKSIN: { label: '균형 잡는 달', tone: 'mid', text: '흐트러진 균형을 바로잡아 주는 달이에요. 생활 리듬을 다시 맞추기 좋아요.' },
+    NEUTRAL: { label: '평소대로 가는 달', tone: 'mid', text: '큰 변화 없이 흐르는 달이에요. 하던 대로 꾸준히 지내면 돼요.' },
+    BYEONGSIN: { label: '쉬어 가는 달', tone: 'care', text: '아이가 쉽게 지칠 수 있는 달이에요. 새 학원이나 큰 변화는 미루고, 잠과 쉬는 시간을 넉넉히 주세요.' },
+  };
+  // 심명 12운성 비대칭 이론: 양간 완만형 / 음간 급변형
+  const SIMMYEONG = {
+    yang: { 장생: '상승', 목욕: '상승', 관대: '강', 건록: '강', 제왕: '정점', 쇠: '강(관성 유지)', 병: '유지', 사: '완만한 약화', 묘: '약', 절: '약', 태: '잠복', 양: '회복' },
+    yin: { 장생: '상승', 목욕: '상승', 관대: '강', 건록: '강', 제왕: '정점', 쇠: '급락', 병: '약', 사: '약', 묘: '약', 절: '약', 태: '잠복', 양: '회복' },
+  };
+  const ENERGY_TEXT = {
+    상승: '기운이 올라가는 때라 새로운 것에 관심이 많아져요.', 강: '기운이 단단한 때라 꾸준히 해내는 힘이 있어요.',
+    정점: '기운이 가장 높은 때예요. 잘 될 때 무리하지 않게 쉬는 시간도 챙겨 주세요.', '강(관성 유지)': '정점을 지났지만 힘이 아직 남아 있어요. 하던 일을 마무리하기 좋아요.',
+    유지: '기운이 고르게 유지되는 때예요.', '완만한 약화': '기운이 천천히 줄어드는 때라 일정을 조금 가볍게 해 주세요.',
+    급락: '기운이 빠르게 줄어드는 때예요. 컨디션 변화를 잘 살펴 주세요.', 약: '기운이 낮은 때라 충분히 쉬게 해 주세요.',
+    잠복: '겉으로는 조용하지만 안에서 자라는 때예요. 재촉하지 말고 기다려 주세요.', 회복: '다시 힘을 모으는 때예요. 작은 성공을 쌓게 도와주세요.',
+  };
+  const CHUNG = [[0, 6], [1, 7], [2, 8], [3, 9], [4, 10], [5, 11]];
+  const YUKHAP = [[0, 1], [2, 11], [3, 10], [4, 9], [5, 8], [6, 7]];
+
+  function build(child, ym, today) {
+    const [Y, M] = ym.split('-').map(Number);
+    const monthStart = `${Y}-${pad(M)}-01`, monthEnd = `${Y}-${pad(M)}-${pad(lastDay(Y, M))}`;
+    const a = F.analyze({ birthDate: child.birth, birthTime: child.time || null, gender: child.gender },
+      { asOf: monthStart, sewoonYears: 2, wolwoonMonths: 2 });
+    // 리포트 달 = 그 달에 시작하는 절기월(절입일 이후가 대부분)
+    const wol = a.wolwoon[0], next = a.wolwoon[1];
+    const se = F.current(a, wol.startDate).sewoon, dw = F.current(a, wol.startDate).daewoon;
+    const st = L.compute(child.birth, monthStart < child.birth ? child.birth : monthStart, child.entry);
+    const bucket = STAGE_BUCKET[st.stage];
+    const yang = a.saju.day.stem % 2 === 0;
+    const energy = SIMMYEONG[yang ? 'yang' : 'yin'][wol.twelveStage];
+    const natal = a.pillars.map(p => p.branch);
+    const clash = natal.some(b => CHUNG.some(([x, y]) => (x === wol.branch && y === b) || (y === wol.branch && x === b)));
+    const harmony = natal.some(b => YUKHAP.some(([x, y]) => (x === wol.branch && y === b) || (y === wol.branch && x === b)));
+    const g = GROUP_TEXT[wol.group5];
+    const tasks = T.build(child, today || monthStart).filter(t => t.from <= monthEnd && t.to >= monthStart && t.status !== 'done');
+    return {
+      version: REPORT_VERSION, engine: a.engineVersion, ym, monthStart, monthEnd,
+      child: { name: child.name, ageLabel: st.label, stage: st.stage, bucket },
+      month: { gz: wol.gzHan, start: wol.startDate, end: wol.endDate, tenGod: wol.tenGod, group5: wol.group5, role: wol.godRole, twelve: wol.twelveStage, energy },
+      theme: g.theme, role: ROLE_TEXT[wol.godRole], energyText: ENERGY_TEXT[energy],
+      tips: g[bucket], clash, harmony,
+      tasks: tasks.map(t => ({ title: t.title, from: t.from, to: t.to, note: t.note, cat: t.cat })),
+      next: { ym: `${next.targetYear}-${pad(next.targetMonth)}`, role: ROLE_TEXT[next.godRole], theme: GROUP_TEXT[next.group5].theme },
+      simmyeong: {
+        pillars: a.pillars.map(p => p.gzHan).join(' '), fourGods: a.fourGods,
+        daewoon: dw ? `${dw.gzHan} (${dw.tenGod}, ${F.ROLE_LABEL[dw.godRole]})` : '대운 시작 전',
+        sewoon: se ? `${se.gzHan} (${se.tenGod}, ${F.ROLE_LABEL[se.godRole]})` : '',
+        wolwoon: `${wol.gzHan} (${wol.tenGod}, ${F.ROLE_LABEL[wol.godRole]}, 12운성 ${wol.twelveStage} → 심명 ${energy})`,
+        dayMaster: `${S.STEMS[a.saju.day.stem]}${a.dayMaster.elem} 일간 · ${yang ? '양간 완만형' : '음간 급변형'}`,
+      },
+    };
+  }
+
+  /* ---------- 화면·PDF 공용 HTML (스타일은 .mr- 접두어, 색은 호출하는 페이지의 토큰을 쓴다) ---------- */
+  const CSS = `
+.mr{display:flex;flex-direction:column;gap:16px;max-width:720px}
+.mr-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--leaf,#2e6a4c);padding-bottom:10px}
+.mr-head h2{font-family:var(--f-display,serif);font-size:1.5rem;margin:0}
+.mr-issue{font-size:.8rem;letter-spacing:.08em;color:var(--ink2,#5b6a61);font-weight:700}
+.mr-theme{font-family:var(--f-display,serif);font-size:1.35rem;line-height:1.35;margin:0}
+.mr-role{display:inline-block;border-radius:8px;padding:3px 10px;font-weight:700;font-size:.85rem}
+.mr-role.good{background:var(--leaf-soft,#e3eee6);color:var(--leaf,#2e6a4c)} .mr-role.mid{background:var(--sky-soft,#e2ebf4);color:var(--sky,#2f5f8a)} .mr-role.care{background:var(--rose-soft,#f7e3df);color:var(--rose,#b5463a)}
+.mr-sec{display:flex;flex-direction:column;gap:6px}
+.mr-sec h3{font-size:1rem;margin:0}
+.mr ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.mr-box{border:1px solid var(--line,#dde4dc);border-radius:12px;padding:12px 14px;font-size:.88rem;display:flex;flex-direction:column;gap:4px}
+.mr-small{font-size:.8rem;color:var(--ink2,#5b6a61)}
+.mr-num{font-variant-numeric:tabular-nums}`;
+  const fmt = s => { const [y, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
+  function renderHTML(r, opt = {}) {
+    const [Y, M] = r.ym.split('-').map(Number);
+    return `<article class="mr">
+  <div class="mr-head"><div><div class="mr-issue">${Y}년 ${M}월호 · 월간 성장 리포트</div><h2>${esc(r.child.name)} · ${esc(r.child.ageLabel)}</h2></div>
+    <span class="mr-role ${r.role.tone}">${r.role.label}</span></div>
+  <p class="mr-theme">${r.theme}</p>
+  <p>${r.role.text} ${r.energyText}</p>
+  <section class="mr-sec"><h3>이달에 해 보면 좋은 것</h3><ul>${r.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+    ${r.clash ? '<p class="mr-small">이달은 환경 변화에 예민할 수 있어요. 이사·전학·새 학원처럼 큰 변화는 일정을 넉넉히 잡아 주세요.</p>' : ''}
+    ${r.harmony ? '<p class="mr-small">가족·친구와 잘 어울리는 기운도 함께 들어와요. 함께하는 나들이를 계획해 보세요.</p>' : ''}</section>
+  <section class="mr-sec"><h3>이달 챙길 일</h3>${r.tasks.length ? `<ul>${r.tasks.map(t => `<li><b>${esc(t.title)}</b> <span class="mr-num mr-small">${t.from === t.to ? fmt(t.from) : `${fmt(t.from)} ~ ${fmt(t.to)}`}</span>${t.note ? `<br><span class="mr-small">${esc(t.note)}</span>` : ''}</li>`).join('')}</ul>` : '<p class="mr-small">이달은 따로 챙길 행정·접종·검진 일정이 없어요.</p>'}</section>
+  <section class="mr-sec"><h3>다음 달 미리 보기</h3><p>${r.next.theme} · <span class="mr-role ${r.next.role.tone}">${r.next.role.label}</span></p></section>
+  ${opt.simmyeong === false ? '' : `<section class="mr-box"><b>심명 풀이</b>
+    <span>원국 ${r.simmyeong.pillars} · ${r.simmyeong.dayMaster}</span>
+    <span>용신 ${r.simmyeong.fourGods.yongsin} · 희신 ${r.simmyeong.fourGods.huisin} · 병신 ${r.simmyeong.fourGods.byeongsin} · 약신 ${r.simmyeong.fourGods.yaksin}</span>
+    <span>대운 ${r.simmyeong.daewoon}</span><span>세운 ${r.simmyeong.sewoon}</span><span>월운 ${r.simmyeong.wolwoon}</span>
+    <span class="mr-small">흐르는 운은 지지 기준 · 월운 기간 <span class="mr-num">${fmt(r.month.start)} ~ ${fmt(r.month.end)}</span></span></section>`}
+  <p class="mr-small">이 리포트는 와이튜브 명리 기준의 참고 정보이며 발달·건강 진단이 아닙니다. 발달이나 건강이 걱정되면 소아청소년과와 상담하세요. 엔진 ${r.engine} · ${r.version}</p>
+</article>`;
+  }
+  return { REPORT_VERSION, build, renderHTML, CSS, GROUP_TEXT, ROLE_TEXT };
+});
+
+</script>
+<script>/* engine/cloud.js */
+/* ============================================================
+   cloud.js — 컴패스랩 서버(Supabase) 연결
+   - 회원 가입·로그인 (이메일 + 비밀번호)
+   - 아이 프로필(person)과 화면 상태(person_app_state) 동기화
+   앱 화면의 아이 모양 { id, sid, name, birth, time, gender, entry, done, dev, answers, insts }
+   sid = 서버 person.id (서버에 저장된 아이만 있음)
+   supabase-js(UMD 전역 `supabase`)가 없으면 offline 모드로 동작한다.
+   ============================================================ */
+(function (root) {
+  'use strict';
+  const CONFIG = {
+    url: 'https://ocinamrnkvnmfkkyguxx.supabase.co',
+    key: 'sb_publishable_uQc4kRmXkGxQEeW1W9Yzzw_lvHZ9OtO',   // 공개용 키 (브라우저에 넣어도 되는 키)
+    termsVersion: 'v2026.11.13',
+  };
+  const REQUIRED = ['TERMS', 'PRIVACY_COLLECT', 'CHILD_PROFILE'];
+  const OPTIONAL = ['SAJU_ANALYSIS', 'MONTHLY_REPORT', 'KAKAO_ALIMTALK', 'MARKETING'];
+
+  let sb = null, user = null;
+  const listeners = [];
+  const emit = () => listeners.forEach(f => { try { f(user); } catch (e) {} });
+
+  function available() { return !!sb; }
+  function init(client) {
+    if (client) sb = client;
+    else if (root.supabase && root.supabase.createClient)
+      sb = root.supabase.createClient(CONFIG.url, CONFIG.key, { auth: { persistSession: true, autoRefreshToken: true } });
+    if (!sb) return Promise.resolve(null);
+    sb.auth.onAuthStateChange((_e, s) => { user = s ? s.user : null; emit(); });
+    return sb.auth.getSession().then(({ data }) => { user = data.session ? data.session.user : null; emit(); return user; });
+  }
+  const onChange = f => listeners.push(f);
+  const currentUser = () => user;
+
+  function msg(err) {
+    const m = (err && (err.message || err.error_description)) || String(err);
+    if (/Invalid login credentials/i.test(m)) return '이메일 또는 비밀번호가 맞지 않아요.';
+    if (/already registered|already exists/i.test(m)) return '이미 가입된 이메일이에요. 로그인해 주세요.';
+    if (/Password should be at least/i.test(m)) return '비밀번호는 6자 이상으로 정해 주세요.';
+    if (/Email not confirmed/i.test(m)) return '메일함에서 가입 확인 메일의 링크를 먼저 눌러 주세요.';
+    if (/valid email|invalid format/i.test(m)) return '이메일 주소 형식을 확인해 주세요.';
+    if (/Failed to fetch|NetworkError|network/i.test(m)) return '인터넷 연결을 확인해 주세요.';
+    if (/rate limit/i.test(m)) return '잠시 후 다시 시도해 주세요.';
+    return m;
+  }
+  async function signUp(email, password, parentName) {
+    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { display_name: parentName } } });
+    if (error) throw new Error(msg(error));
+    return { needsConfirm: !data.session };
+  }
+  async function signIn(email, password) {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(msg(error));
+  }
+  async function signOut() { await sb.auth.signOut(); }
+
+  /* ---------- 변환 ---------- */
+  const hm = t => (t ? String(t).slice(0, 5) : '');
+  function fromServer(r) {
+    const s = r.app_state || {};
+    return {
+      id: 's' + r.person_id, sid: r.person_id, familyId: r.family_id,
+      name: r.display_name, birth: String(r.birth_date).slice(0, 10), time: hm(r.birth_time),
+      gender: r.gender || 'F', entry: r.entry_date_override ? String(r.elementary_entry_date).slice(0, 10) : null,
+      done: s.done || {}, dev: s.dev || {}, answers: s.answers || {}, insts: s.insts || [],
+      syncedAt: r.state_updated_at || null,
+    };
+  }
+  const stateOf = k => ({ done: k.done || {}, dev: k.dev || {}, answers: k.answers || {}, insts: k.insts || [] });
+  const profileOf = k => ({ name: k.name, birth: k.birth, time: k.time || '', gender: k.gender, entry: k.entry || null });
+
+  async function pull() {
+    const { data, error } = await sb.rpc('my_children');
+    if (error) throw new Error(msg(error));
+    return (data || []).map(fromServer);
+  }
+
+  async function familyId() {
+    const { data, error } = await sb.from('family').select('id').eq('owner_user_id', user.id).eq('status', 'ACTIVE').order('created_at').limit(1);
+    if (error) throw new Error(msg(error));
+    return data && data[0] ? data[0].id : null;
+  }
+
+  // 새 아이: 가족이 없으면 가족과 함께, 있으면 가족에 추가. 서버 person.id를 돌려준다
+  async function createKid(k, consents, parentName) {
+    const cs = Array.from(new Set([...REQUIRED, ...(consents || []).filter(c => OPTIONAL.includes(c))]));
+    const fam = await familyId();
+    const args = { p_child_name: k.name, p_birth_date: k.birth, p_birth_time: k.time || null, p_gender: k.gender || null,
+                   p_terms_version: CONFIG.termsVersion, p_consents: cs };
+    const { data, error } = fam
+      ? await sb.rpc('add_child', Object.assign({ p_family: fam }, args))
+      : await sb.rpc('create_family_with_child', Object.assign({ p_family_name: (parentName || '우리') + ' 가족', p_parent_name: parentName || '보호자' }, args));
+    if (error) throw new Error(msg(error));
+    const sid = data;
+    if (k.entry) await updateProfile(Object.assign({}, k, { sid }));
+    await saveState(Object.assign({}, k, { sid }));
+    return sid;
+  }
+
+  async function updateProfile(k) {
+    const row = { display_name: k.name, birth_date: k.birth, birth_time: k.time || null,
+                  birth_time_status: k.time ? 'KNOWN' : 'UNKNOWN', gender: k.gender || null,
+                  entry_date_override: !!k.entry };
+    if (k.entry) row.elementary_entry_date = k.entry;
+    const { error } = await sb.from('person').update(row).eq('id', k.sid);
+    if (error) throw new Error(msg(error));
+  }
+
+  async function saveState(k) {
+    const { error } = await sb.from('person_app_state').upsert({ person_id: k.sid, data: stateOf(k) }, { onConflict: 'person_id' });
+    if (error) throw new Error(msg(error));
+  }
+
+  async function archive(sid) {
+    const { error } = await sb.from('person').update({ profile_status: 'ARCHIVED' }).eq('id', sid);
+    if (error) throw new Error(msg(error));
+  }
+
+  /* ---------- 한 번에 맞추기 ----------
+     로컬 아이 목록과 서버를 합친다.
+     - 서버에 없는 로컬 아이(예시 제외)는 서버에 새로 만든다
+     - 로컬에서 고친 아이(dirty)는 서버에 올린다
+     - 그 밖에는 서버 내용을 따른다 (다른 기기에서 고친 것 반영) */
+  async function sync(localKids, consents, parentName) {
+    const server = await pull();
+    const bySid = new Map(server.map(k => [k.sid, k]));
+    const out = [];
+    for (const k of localKids) {
+      if (k.example) continue;
+      if (!k.sid) {
+        const sid = await createKid(k, consents, parentName);
+        out.push(Object.assign({}, k, { sid, dirty: false, profileDirty: false }));
+        continue;
+      }
+      const s = bySid.get(k.sid);
+      if (!s) continue;                       // 다른 기기에서 삭제됨
+      bySid.delete(k.sid);
+      if (k.profileDirty) await updateProfile(k);
+      if (k.dirty) await saveState(k);
+      out.push(k.dirty || k.profileDirty
+        ? Object.assign({}, k, { dirty: false, profileDirty: false })
+        : Object.assign({}, s, { id: k.id }));
+    }
+    for (const s of bySid.values()) out.push(s);   // 다른 기기에서 추가된 아이
+    return out;
+  }
+
+  root.CompassCloud = { CONFIG, REQUIRED, OPTIONAL, init, available, onChange, currentUser,
+                        signUp, signIn, signOut, pull, createKid, updateProfile, saveState, archive, sync, profileOf, stateOf };
+  if (typeof module !== 'undefined' && module.exports) module.exports = root.CompassCloud;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+
+<script>
+(function(){
+'use strict';
+const S = window.SajuCore, F = window.SajuFlow, L = window.LifeStage;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LINKS = {
+  naming: 'https://claude.ai/code/artifact/ca094871-bb7e-4dd5-8ba8-f32f6e4dea12',
+  elem: 'https://claude.ai/code/artifact/5568f6c2-3c91-454a-bbde-d8bb350e3af0',
+  college: 'https://waitube.github.io/SCM/',
+  kakao: 'https://open.kakao.com/o/s2ZATWpc',
+  vaccine: 'https://nip.kdca.go.kr/',
+  childcare: 'https://www.childcare.go.kr/',
+  kinder: 'https://www.go-firstschool.go.kr/',
+  schoolzone: 'https://schoolzone.emac.kr/',
+};
+
+/* ---------- 날짜 ---------- */
+const pad = n => String(n).padStart(2,'0');
+const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const toUTC = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y,m-1,d); };
+const fromUTC = t => new Date(t).toISOString().slice(0,10);
+const addDays = (s,n) => fromUTC(toUTC(s)+n*864e5);
+function addMonths(s,n){ const [y,m,d]=s.split('-').map(Number); const t=new Date(Date.UTC(y,m-1+n,1)); const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0)).getUTCDate(); return `${t.getUTCFullYear()}-${pad(t.getUTCMonth()+1)}-${pad(Math.min(d,last))}`; }
+const fmt = s => { const [y,m,d]=s.split('-').map(Number); return `${y}.${m}.${d}`; };
+const fmtShort = s => { const [y,m,d]=s.split('-').map(Number); return `${String(y).slice(2)}.${m}.${d}`; };
+function ageText(birth,on){
+  const [by,bm,bd]=birth.split('-').map(Number),[ty,tm,td]=on.split('-').map(Number);
+  let months=(ty-by)*12+(tm-bm)-(td<bd?1:0); if(months<0) return '태어나기 전';
+  const days=Math.round((toUTC(on)-toUTC(birth))/864e5)+1;
+  if(months<1) return `태어난 지 ${days}일째`;
+  if(months<36) return `생후 ${months}개월 (${days}일째)`;
+  return `만 ${Math.floor(months/12)}세 ${months%12}개월`;
+}
+const monthsOld = (birth,on) => { const [by,bm,bd]=birth.split('-').map(Number),[ty,tm,td]=on.split('-').map(Number); return (ty-by)*12+(tm-bm)-(td<bd?1:0); };
+
+/* ---------- 저장 (이 기기에만) ---------- */
+const KEY='lifelong-nav-v1';
+function load(){ try{ const v=JSON.parse(localStorage.getItem(KEY)||'null'); if(v&&Array.isArray(v.kids)&&v.kids.length) return v; }catch(e){} return null; }
+const C = window.CompassCloud;
+function markDirty(){
+  for(const k of state.kids){ if(k.example) continue;
+    const h=JSON.stringify(C?C.stateOf(k):0), ph=JSON.stringify(C?C.profileOf(k):0);
+    if(k._h!==undefined && k._h!==h) k.dirty=true; if(k._ph!==undefined && k._ph!==ph) k.profileDirty=true;
+    k._h=h; k._ph=ph; }
+}
+function save(){ markDirty(); try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} scheduleSync(); }
+let syncTimer=null, syncing=false, syncAgain=false;
+function scheduleSync(){ if(!C||!C.currentUser()) return; clearTimeout(syncTimer); syncTimer=setTimeout(doSync,1200); }
+async function doSync(){
+  if(!C||!C.currentUser()) return;
+  if(syncing){ syncAgain=true; return; }
+  syncing=true; cloud.status='syncing'; renderPill();
+  try{
+    const kids=await C.sync(state.kids, state.consents||[], state.parentName||'');
+    if(kids.length){
+      const curSid=(kid()||{}).sid;
+      state.kids=kids; kids.forEach(k=>{ k._h=JSON.stringify(C.stateOf(k)); k._ph=JSON.stringify(C.profileOf(k)); });
+      const byCur=kids.find(k=>k.id===state.cur)||kids.find(k=>k.sid&&k.sid===curSid);
+      state.cur=(byCur||kids[0]).id;
+    }
+    cloud.status='ok'; cloud.error=''; cloud.at=new Date();
+  }catch(e){ cloud.status='err'; cloud.error=e.message; }
+  syncing=false;
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  render();
+  if(syncAgain){ syncAgain=false; scheduleSync(); }
+}
+const cloud={status:'off',error:'',at:null};
+const EXAMPLE = { id:'ex1', example:true, name:'하늘', birth:'2023-05-14', time:'09:15', gender:'F', entry:null,
+  done:{}, dev:{}, answers:{}, insts:[{id:'i1',name:'햇살어린이집',kind:'어린이집',marks:{},memo:''}] };
+let state = load() || { kids:[EXAMPLE], cur:'ex1', tab:'today', simmyeong:false, filter:'soon' };
+const kid = () => state.kids.find(k=>k.id===state.cur) || state.kids[0];
+
+/* ---------- 사주 (화면 기본값에는 용어를 쓰지 않는다) ---------- */
+const cache = {};
+function analysis(k){
+  const key = `${k.birth}|${k.time||''}|${k.gender}`;
+  if(!cache[key]) cache[key] = F.analyze({birthDate:k.birth, birthTime:k.time||null, gender:k.gender}, {asOf:todayIso(), sewoonYears:6, wolwoonMonths:12});
+  return cache[key];
+}
+// 오행 세력을 일간 기준 다섯 묶음으로 (비겁·식상·재성·관성·인성)
+function groupShares(a){
+  const day = S.STEM_ELEM[a.saju.day.stem], c = a.ys.counts, tot = Object.values(c).reduce((x,y)=>x+y,0);
+  const g = {비겁:0,식상:0,재성:0,관성:0,인성:0};
+  for(const e of Object.keys(c)) g[S.elementRelationGroup(day,e)] += c[e]/tot;
+  return g;
+}
+// 임시 연결표 (대표님 검토 중): 비겁→자기주도, 식상→활동성, 재성→또래 관계, 관성→적응·생활 습관, 인성→몰입·탐구
+const to100 = s => Math.round(Math.max(20, Math.min(85, 50 + (s-0.2)*150)));
+const AREAS_KG = [
+  {k:'adapt', name:'적응', from:'관성'}, {k:'peer', name:'또래 관계', from:'재성'},
+  {k:'active', name:'활동성', from:'식상'}, {k:'focus', name:'몰입 놀이', from:'인성'}, {k:'habit', name:'생활 습관', from:'관성'}];
+function baseAreas(k){ const g = groupShares(analysis(k)); const o={}; AREAS_KG.forEach(a=>o[a.k]=to100(g[a.from])); return o; }
+
+/* ---------- 나이별 성향 문항 (유치원·어린이집 어디가 문서) ---------- */
+const QS = {
+  adapt:{common:[['새로운 장소에 가도 조금 지나면 편안해진다.',0],['평소와 일과가 달라지면 많이 힘들어한다.',1]],
+    a0:[['낯선 어른이 안아도 금방 진정하는 편이다.',0],['보호자와 떨어질 때 오래 울지 않는다.',0],['잠자리나 장소가 바뀌어도 비교적 잘 잔다.',0]],
+    a3:[['보호자와 헤어질 때 인사하고 들어갈 수 있다.',0],['처음 보는 선생님에게 필요한 것을 말하거나 표현한다.',0],['새로운 반에 익숙해지는 데 오래 걸린다.',1]],
+    a4:[['새 친구나 새 선생님에게 먼저 다가간다.',0],['일정이 바뀌어도 설명을 들으면 받아들인다.',0],['낯선 곳에서 도움이 필요하면 어른에게 요청한다.',0]]},
+  peer:{common:[['다른 아이들이 노는 모습에 관심을 보인다.',0],['다른 아이가 가까이 오면 피하거나 불편해한다.',1]],
+    a0:[['다른 아이를 보면 웃거나 다가간다.',0],['다른 아이 옆에서 나란히 노는 것을 편해한다.',0],['장난감을 빼앗기면 오래 진정하지 못한다.',1]],
+    a3:[['친구와 장난감을 번갈아 쓸 수 있다.',0],['친구 이름을 부르며 같이 놀자고 한다.',0],['혼자 노는 것을 훨씬 더 좋아한다.',1]],
+    a4:[['친구와 역할을 나눠 놀이를 한다.',0],['의견이 다르면 말로 해결하려고 한다.',0],['놀이 규칙이나 차례를 지킨다.',0]]},
+  active:{common:[['몸을 움직이는 놀이를 좋아한다.',0],['오래 앉아 있는 활동을 힘들어한다.',0]],
+    a0:[['기거나 걷거나 오르는 것을 계속 시도한다.',0],['바깥에 나가면 즐거워한다.',0],['소리나 움직임이 많은 곳에서 쉽게 지친다.',1]],
+    a3:[['놀이터 기구를 스스로 해 보려 한다.',0],['새로운 놀이가 시작되면 바로 참여하고 싶어한다.',0],['익숙한 놀이만 하려고 한다.',1]],
+    a4:[['달리기, 공놀이 같은 신체 놀이를 즐긴다.',0],['만들기나 실험처럼 직접 해 보는 활동을 좋아한다.',0],['바깥 체험이나 견학에 관심이 많다.',0]]},
+  focus:{common:[['좋아하는 놀이를 오래 한다.',0],['한 가지 놀이를 금방 그만두고 다른 것으로 옮긴다.',1]],
+    a0:[['장난감 하나를 이리저리 살펴보며 논다.',0],['그림책을 넘기거나 보는 데 관심을 보인다.',0],['같은 행동을 반복하며 탐색한다.',0]],
+    a3:[['블록이나 퍼즐을 끝까지 맞추려 한다.',0],['"왜?", "이건 뭐야?" 같은 질문을 자주 한다.',0],['놀이 중에 주변 소리에 쉽게 흐트러진다.',1]],
+    a4:[['관심 있는 주제(공룡, 곤충 등)를 깊이 알고 싶어한다.',0],['어려워도 여러 방법을 시도해 본다.',0],['혼자 계획을 세워 놀이를 이어간다.',0]]},
+  habit:{common:[['먹고 자는 시간이 대체로 일정하다.',0],['새로운 음식을 거부하는 편이다.',1]],
+    a0:[['정해진 시간에 낮잠을 잔다.',0],['숟가락이나 컵을 스스로 써 보려 한다.',0],['기저귀를 갈거나 씻을 때 많이 거부한다.',1]],
+    a3:[['화장실에 가고 싶다고 말할 수 있다.',0],['스스로 밥을 먹는다.',0],['옷 입기, 신발 신기를 혼자 해 보려 한다.',0]],
+    a4:[['정리 정돈을 스스로 한다.',0],['손 씻기 같은 생활 규칙을 알려주지 않아도 지킨다.',0],['하루 일과의 순서를 알고 따른다.',0]]},
+};
+const SCALE = ['전혀 아니다','아닌 편','보통','그런 편','매우 그렇다'];
+// 입소하는 해 3월 1일 기준 만 나이 구간
+function ageBand(k){
+  const on = todayIso(); const y = Number(on.slice(0,4)) + (on.slice(5) >= '03-01' ? 1 : 0);
+  const [by,bm,bd] = k.birth.split('-').map(Number);
+  let age = y - by - ((3 < bm || (3===bm && 1 < bd)) ? 1 : 0);
+  return { age, band: age<=2 ? 'a0' : age===3 ? 'a3' : 'a4', year: y };
+}
+function questionsFor(k){
+  const {band} = ageBand(k); const out=[];
+  for(const a of AREAS_KG){ const set = QS[a.k]; [...set.common.map((q,i)=>['c'+i,q]), ...set[band].map((q,i)=>[band+i,q])].forEach(([id,[t,rev]])=>out.push({id:`${a.k}.${id}`, area:a.k, text:t, rev:!!rev})); }
+  return out;
+}
+function answeredAreas(k){
+  const qs = questionsFor(k), o={}; let n=0;
+  for(const a of AREAS_KG){ const mine = qs.filter(q=>q.area===a.k); let s=0,c=0; mine.forEach(q=>{ const v=k.answers[q.id]; if(v){ s+= q.rev?6-v:v; c++; n++; } }); o[a.k] = c===mine.length ? Math.round((s-c)/(4*c)*100) : null; }
+  return {scores:o, answered:n, total:qs.length};
+}
+function finalAreas(k){ const b=baseAreas(k), a=answeredAreas(k).scores, o={}; AREAS_KG.forEach(x=>o[x.k] = a[x.k]!=null ? a[x.k] : b[x.k]); return o; }
+
+/* ---------- 할 일: engine/life-tasks.js ---------- */
+const tasks = k => window.LifeTasks.build(k, todayIso());
+/* ---------- 발달 (상담 기준은 모든 아이에게 같다) ---------- */
+const DEV = [['목 가누기','3~4개월',4],['뒤집기','4~6개월',6],['혼자 앉기','6~8개월',9],['첫니','6~10개월',12],['기기·잡고 서기','8~10개월',12],['혼자 걷기','12~15개월',18],['첫 단어','10~14개월',16],['뛰기','18~24개월',24],['두 단어 말하기','18~24개월',24],['대소변 가리기','24~36개월',null]];
+const DEV_CONSULT = {'목 가누기':'4개월에도 목을 못 가눌 때','뒤집기':'6개월이 지나도 전혀 시도하지 않을 때','혼자 앉기':'9개월에도 받쳐 줘야 앉을 때','첫니':'돌이 지나도 이가 하나도 나지 않을 때','기기·잡고 서기':'돌 무렵에도 잡고 서지 못할 때','혼자 걷기':'18개월에도 혼자 걷지 못할 때','첫 단어':'16개월에도 의미 있는 말이 없을 때','뛰기':'24개월에도 안정적으로 걷지 못할 때','두 단어 말하기':'24개월에도 두 단어를 잇지 못할 때','대소변 가리기':'아이마다 차이가 크므로 재촉하지 않아요'};
+
+/* ---------- 학원·활동 추천 ---------- */
+const ACT = {
+  active:{title:'몸으로 하는 수업', items:'태권도, 수영, 유아 체육, 발레·댄스', why:'움직이며 배울 때 즐거워하는 편일 수 있어요'},
+  focus:{title:'만들고 탐구하는 수업', items:'블록·창의 놀이, 미술, 놀이 과학', why:'한 가지 놀이에 오래 몰입하는 편일 수 있어요'},
+  peer:{title:'친구와 함께하는 수업', items:'소그룹 놀이 수업, 그룹 체육', why:'친구와 어울릴 때 힘이 나는 편일 수 있어요'},
+  adaptLow:{title:'천천히 익숙해지는 수업', items:'소수 정원, 보호자 참관 가능, 같은 선생님 고정', why:'새 환경에 천천히 적응하는 편일 수 있어요'},
+  habitLow:{title:'짧고 가까운 수업', items:'40분 이하 수업, 유치원 근처·차량 운행', why:'일과가 일정할 때 편안한 편일 수 있어요'},
+};
+function recommend(k){
+  const f=finalAreas(k), out=[];
+  if(f.adapt<45) out.push(ACT.adaptLow);
+  ['active','focus','peer'].sort((x,y)=>f[y]-f[x]).slice(0,2).forEach(x=>out.push(ACT[x]));
+  if(f.habit<45) out.push(ACT.habitLow);
+  // 대표님 규칙 (사주 기반, 화면에는 용어 없이)
+  const a=analysis(k), g=groupShares(a), c=a.ys.counts;
+  if((c['금']||0)<=0.5) out.push({title:'수영', items:'물에서 하는 운동', why:'기운의 균형을 맞추는 데 도움이 될 수 있는 운동이에요', rule:true});
+  const extro = (g.식상+g.재성) > (g.인성+g.비겁);
+  out.push(extro ? {title:'서예·검도', items:'마음을 가라앉히고 집중하는 운동', why:'밖으로 뻗는 에너지가 큰 편이라 차분함을 길러 줄 수 있어요', rule:true}
+                 : {title:'태권도·복싱', items:'소리 내고 부딪히며 하는 운동', why:'안으로 모으는 편이라 표현과 자신감을 길러 줄 수 있어요', rule:true});
+  return out;
+}
+
+/* ---------- 기관 방문 체크리스트 ---------- */
+const CK = [
+  {g:1,name:'기본 조건',items:['집·직장에서 거리와 통학 시간','차량 운행 노선과 탑승 시간','등원·하원 시간이 보호자 일정과 맞는지','연장보육·방과후 과정','정부 지원 외 매달 추가 비용(특별활동·차량·행사비)','입소 대기 순번과 예상 시기']},
+  {g:2,name:'안전과 위생',items:['CCTV 설치와 열람 절차','놀이터·실내 시설 관리','식단 공개와 급식 위생','알레르기·특이 식이 대응','아프거나 다쳤을 때 연락·대응 절차','평가인증·평가 결과 확인']},
+  {g:3,name:'선생님과 반 구성',items:['반별 아이 수와 교사 수','담임 교사가 자주 바뀌지 않는지','보조·연장반 교사','담임과 소통 방법(알림장·앱·상담)','정기 상담 횟수']},
+  {g:4,name:'하루 일과와 교육 방식',items:['놀이 중심인지 학습 중심인지','바깥 놀이 시간','낮잠과 휴식 운영','특별활동 종류와 빠질 수 있는지','아이가 골라서 노는 시간']},
+  {g:5,name:'적응 지원',items:['첫 등원 때 시간을 늘려 가는 적응','적응 기간 보호자 동반 가능 여부','아이가 힘들어할 때 대응','적응 상황을 알려 주는 방법']},
+];
+function hotGroups(k){ const f=finalAreas(k), h=new Set(); if(f.adapt<45){h.add(5);h.add(3);} if(f.active>=60){h.add(4);h.add(2);} if(f.peer<45){h.add(3);h.add(4);} if(f.focus>=60) h.add(4); if(f.habit<45){h.add(2);h.add(4);} return h; }
+
+/* ---------- 화면 ---------- */
+const TABS = [['today','할 일'],['grow','성장 기록'],['trait','성향·학원'],['inst','기관 고르기'],['report','월간 리포트'],['flow','심명 보기'],['apps','연결 앱'],['kid','아이 정보'],['account','계정']];
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200); }
+function renderPill(){
+  const el=$('#syncPill'); if(!el) return;
+  if(!C||!C.available()){ el.hidden=true; return; }
+  el.hidden=false; const u=C.currentUser();
+  el.className='sync'+(u&&cloud.status==='ok'?' on':'')+(cloud.status==='err'?' err':'');
+  el.textContent = !u ? '로그인하면 안전하게 보관' : cloud.status==='syncing' ? '저장 중…' : cloud.status==='err' ? '저장 안 됨' : '서버에 저장됨';
+}
+function renderTop(){
+  renderPill();
+  $('#kids').innerHTML = state.kids.map(k=>`<button class="kid" aria-pressed="${k.id===state.cur}" data-kid="${k.id}">${esc(k.name)}${k.example?' <span class="small">(예시)</span>':''}</button>`).join('') + `<button class="kid add" data-addkid>＋ 아이 추가</button>`;
+  $('#tabs').innerHTML = TABS.map(([id,n])=>`<button class="tab" role="tab" aria-selected="${state.tab===id}" data-tab="${id}">${n}</button>`).join('');
+}
+function heroHTML(k){
+  const t=todayIso(), st=L.compute(k.birth,t,k.entry), m=st.milestones;
+  const pts=[['출생',k.birth],['백일',m.baekil],['돌',m.doljanchi],['유치원',m.kindergartenEntry],['초등 입학',m.elementaryEntry],['중학교',m.middleEntry]];
+  const t0=toUTC(k.birth), t1=toUTC(m.middleEntry), pos=s=>Math.max(0,Math.min(100,(toUTC(s)-t0)/(t1-t0)*100));
+  const next = pts.find(p=>p[1]>t);
+  const dday = next ? Math.round((toUTC(next[1])-toUTC(t))/864e5) : null;
+  return `<section class="panel stack">
+    ${k.example?'<div class="notice">예시 아이입니다. <b>아이 정보</b> 탭에서 우리 아이로 바꾸거나 <b>＋ 아이 추가</b>를 누르세요. 입력한 정보는 이 기기에만 저장됩니다.</div>':''}
+    <div class="hero"><div class="who"><span class="label">${esc(k.name)} · <span class="age">${ageText(k.birth,t)}</span></span>
+      <span class="stage-name">${st.label}</span></div>
+      ${next?`<div class="small muted" style="text-align:right">${next[0]}까지<br><b class="num" style="font-size:1.4rem;color:var(--gold)">D-${dday}</b></div>`:''}</div>
+    <div class="ruler" aria-label="성장 이정표"><div class="bar"></div><div class="fill" style="width:${pos(t)}%"></div>
+      <span class="you" style="left:${pos(t)}%">오늘</span>
+      ${pts.map(([n,d])=>`<span class="tick ${d<=t?'done':''} ${n==='돌'||n==='초등 입학'?'gold':''}" style="left:${pos(d)}%"><i></i>${n}<span class="num">${fmtShort(d)}</span></span>`).join('')}</div>
+  </section>`;
+}
+function taskRow(x){
+  const pill = {done:['p-done','완료'],past:['p-past','지남'],now:['p-now','지금'],soon:['p-soon','곧'],later:['p-past','나중']}[x.status];
+  const when = x.from===x.to ? fmt(x.from) : `${fmt(x.from)} ~ ${fmt(x.to)}`;
+  return `<div class="task ${x.done?'is-done':''}"><input type="checkbox" id="t-${x.id}" data-task="${x.id}" ${x.done?'checked':''} aria-label="${esc(x.title)} 완료">
+    <label for="t-${x.id}" class="t">${esc(x.title)}<span class="cat">${x.cat}</span></label><span class="pill ${pill[0]}">${pill[1]}</span>
+    <div class="d"><span class="num">${when}</span>${x.note?' · '+esc(x.note):''}${x.link?` · <a href="${LINKS[x.link]}" target="_blank" rel="noopener">바로 가기</a>`:''}</div></div>`;
+}
+function viewToday(k){
+  const T=tasks(k), f=state.filter;
+  const list = f==='soon' ? T.filter(x=>x.when==='now'||x.when==='soon'||(x.when==='past'&&!x.done&&(toUTC(todayIso())-toUTC(x.to))/864e5<60)) : f==='all' ? T : T.filter(x=>x.cat===f);
+  const cats=['soon','all','행정','접종','검진','기관','입학','준비'], names={soon:'지금·곧',all:'전체'};
+  return heroHTML(k) + `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>할 일</h2><span class="small muted">생년월일로 자동으로 만든 일정</span></div>
+    <div class="filters">${cats.map(c=>`<button class="chip" aria-pressed="${f===c}" data-filter="${c}">${names[c]||c}</button>`).join('')}</div>
+    <div>${list.length?list.map(taskRow).join(''):'<div class="empty">지금 챙길 일이 없어요. 전체 보기에서 앞으로의 일정을 확인하세요.</div>'}</div>
+    <p class="small muted">접종·검진·지원 제도는 매년 바뀔 수 있어요. 공식 자료(예방접종도우미, 정부24, 아이사랑)로 확인하세요. 지역마다 다른 입학 일정은 대략적인 시기만 보여 줍니다.</p></section>`;
+}
+function viewGrow(k){
+  const mo=monthsOld(k.birth,todayIso());
+  const rows = DEV.map(([n,range,consult])=>{ const done=k.dev[n]; const over = !done && consult!=null && mo>=consult;
+    return `<div class="task"><input type="checkbox" id="d-${n}" data-dev="${esc(n)}" ${done?'checked':''}><label class="t" for="d-${n}">${n}</label>
+      <span class="pill ${done?'p-done':over?'p-warn':'p-past'}">${done?'했어요':over?'상담 권장':range}</span>
+      <div class="d">${done?`기록한 날 <span class="num">${fmt(done)}</span>`:`보통 ${range}${over?` · ${DEV_CONSULT[n]}에는 건강검진이나 소아청소년과에서 물어보세요`:''}`}</div></div>`; }).join('');
+  return `<section class="panel stack"><h2>성장 기록</h2>
+    <p class="muted small">한 날을 체크해 두면 다음 건강검진 때 보여 줄 수 있어요. 상담을 권하는 기준은 성향과 관계없이 모든 아이에게 같습니다.</p>
+    <div>${rows}</div></section>`;
+}
+function viewTrait(k){
+  const b=baseAreas(k), aa=answeredAreas(k), f=finalAreas(k), band=ageBand(k), st=L.compute(k.birth,todayIso(),k.entry);
+  const bars = AREAS_KG.map(a=>`<div class="area"><span>${a.name}</span><div class="track"><div class="ans" style="width:${f[a.k]}%"></div><div class="base" style="left:${b[a.k]}%" title="기본 성향"></div></div><span class="num small">${f[a.k]}</span></div>`).join('');
+  const qs=questionsFor(k);
+  const quiz = qs.map(q=>`<div class="q"><span>${esc(q.text)}</span><div class="scale" role="radiogroup" aria-label="${esc(q.text)}">${SCALE.map((s,i)=>`<label><input type="radio" name="q-${q.id}" value="${i+1}" data-q="${q.id}" ${k.answers[q.id]===i+1?'checked':''}><b>${i+1}</b>${s}</label>`).join('')}</div></div>`).join('');
+  const recs = recommend(k).map(r=>`<div class="rec"><h3>${esc(r.title)}</h3><span>${esc(r.items)}</span><span class="small muted">${esc(r.why)}</span></div>`).join('');
+  const elem = st.stage==='ELEMENTARY'||st.stage==='FUTURE';
+  return `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>우리 아이 성향</h2><span class="small muted">${band.year}년 3월 기준 만 ${band.age}세 문항</span></div>
+    <p class="muted small">태어난 날로 먼저 기본 성향을 보여 주고, 아래 문항에 답하면 실제 모습으로 바뀝니다. 기본값과 답이 다르면 답을 따릅니다.</p>
+    <div class="legend"><span>지금 성향</span><span class="b">태어난 날로 본 기본 성향</span></div>
+    <div class="areas">${bars}</div>
+    <p class="small muted">문항 ${aa.answered}/${aa.total} 답함${aa.answered<aa.total?' · 영역의 문항을 모두 답하면 그 영역이 실제 모습으로 바뀌어요':''}</p></section>
+  <section class="stack"><h2>이런 수업이 잘 맞을 수 있어요</h2><div class="recs">${recs}</div>
+    <p class="small muted">주당 학원 수와 시간이 많아지면 아이가 쉬는 시간이 충분한지 살펴보세요. 집 근처 학원 찾기는 다음 버전에서 나이스 학원 정보로 연결됩니다.</p>
+    ${elem?`<div class="notice">초등학생은 40문항 진단으로 학교와 학원을 함께 고를 수 있어요. <a href="${LINKS.elem}" target="_blank" rel="noopener">아이맞춤 초등학교 열기</a></div>`:''}</section>
+  <section class="panel"><h2>성향 문항 (25개)</h2>${quiz}</section>`;
+}
+function viewInst(k){
+  const hot=hotGroups(k), list=k.insts||[];
+  const card = inst => `<section class="panel stack" data-inst="${inst.id}"><div class="row" style="justify-content:space-between"><h3>${esc(inst.name)} <span class="small muted">${esc(inst.kind)}</span></h3><button class="btn small ghost" data-delinst="${inst.id}">삭제</button></div>
+    ${[...CK].sort((a,b)=>(hot.has(b.g)?1:0)-(hot.has(a.g)?1:0)).map(g=>`<div><div class="label">${g.g}. ${g.name}${hot.has(g.g)?'<span class="grp-hot">우리 아이에게 중요</span>':''}</div>
+      ${g.items.map((it,i)=>{ const id=`${g.g}-${i}`, v=inst.marks[id]||''; return `<div class="ck"><span>${esc(it)}</span><div class="tri" role="group">${[['ok','확인됨'],['need','확인 필요'],['na','해당 없음']].map(([c,n])=>`<button class="${c}" aria-pressed="${v===c}" data-mark="${inst.id}|${id}|${c}">${n}</button>`).join('')}</div></div>`; }).join('')}</div>`).join('')}
+    <label class="fld">방문 메모 (좋았던 점, 걱정되는 점, 아이 반응)<input id="memo-${inst.id}" data-memo="${inst.id}" value="${esc(inst.memo)}"></label></section>`;
+  const cmp = list.length>1 ? `<section class="stack"><h2>나란히 비교</h2><div class="tablewrap"><table><thead><tr><th>항목</th>${list.map(i=>`<th>${esc(i.name)}</th>`).join('')}</tr></thead><tbody>
+    ${CK.flatMap(g=>g.items.map((it,i)=>`<tr><td>${esc(it)}</td>${list.map(x=>{const v=x.marks[`${g.g}-${i}`]; return `<td>${v==='ok'?'확인됨':v==='need'?'<b style="color:var(--rose)">확인 필요</b>':v==='na'?'해당 없음':'—'}</td>`;}).join('')}</tr>`)).join('')}</tbody></table></div>
+    <p class="small muted">순위나 점수는 매기지 않습니다. 확인된 것과 더 물어볼 것만 보여 줍니다.</p></section>` : '';
+  const band=ageBand(k);
+  return `<section class="panel stack"><h2>유치원·어린이집 고르기</h2>
+    <p class="muted small">${band.age<=2?'만 0~2세는 어린이집만 다닐 수 있어요.':'만 3세부터 유치원과 어린이집을 함께 볼 수 있어요.'} 방문할 곳을 추가하면 우리 아이 성향에 맞춰 중요한 항목이 위로 올라옵니다.</p>
+    <form class="row" id="addInst"><input class="fld" style="flex:1 1 200px;border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--bg)" id="instName" placeholder="기관 이름" required>
+      <select id="instKind" style="border:1px solid var(--line);border-radius:8px;padding:9px;background:var(--bg)"><option>어린이집</option>${band.age>=3?'<option>유치원</option>':''}</select>
+      <button class="btn primary">추가</button></form>
+    <div class="row small"><a href="${LINKS.childcare}" target="_blank" rel="noopener">어린이집 찾기(아이사랑)</a><a href="${LINKS.kinder}" target="_blank" rel="noopener">유치원 모집(처음학교로)</a></div></section>
+    ${list.map(card).join('')||'<div class="empty">아직 추가한 기관이 없어요.</div>'}${cmp}`;
+}
+const ROLE_NAME={YONGSIN:'용신',HUISIN:'희신',BYEONGSIN:'병신',YAKSIN:'약신',NEUTRAL:'중립'};
+function viewFlow(k){
+  if(!state.simmyeong) return `<section class="panel stack"><h2>심명 보기</h2>
+    <p>태어난 날의 사주 원국과 지금 흐르는 운(대운·세운·월운)을 보는 화면입니다. 다른 화면에는 사주 용어를 쓰지 않고, 여기서만 자세히 보여 드립니다.</p>
+    <label class="switch"><input type="checkbox" id="smToggle"> 사주 용어로 자세히 보기</label></section>`;
+  const a=analysis(k), cur=F.current(a,todayIso()), t=todayIso();
+  const pil = a.pillars.slice().reverse().map(p=>`<div class="pil"><div class="lb">${{YEAR:'년',MONTH:'월',DAY:'일',HOUR:'시'}[p.pillarType]}주</div><div class="gz">${p.gzHan}</div><div class="lb">${p.tenGodStem} · ${p.tenGodBranch}</div><div class="lb">${p.twelveStage}</div></div>`).join('');
+  const gods = [['용신',a.fourGods.yongsin],['희신',a.fourGods.huisin],['병신',a.fourGods.byeongsin],['약신',a.fourGods.yaksin]].map(([n,e])=>`<div class="god"><span class="small muted">${n}</span><b class="e-${e}">${e}</b></div>`).join('');
+  const line=(n,r)=> r?`<div class="row"><span class="label" style="width:3em">${n}</span><b>${r.gzHan}</b><span>${r.tenGod} · ${r.twelveStage}</span><span class="pill ${r.godRole==='BYEONGSIN'?'p-warn':r.godRole==='NEUTRAL'?'p-past':'p-done'}">${ROLE_NAME[r.godRole]}</span><span class="small muted num">${fmt(r.startDate)} ~ ${fmt(r.endDate)}</span></div>`:'';
+  const months = a.wolwoon.map(r=>`<div class="mo r-${r.godRole} ${r.startDate<=t&&t<=r.endDate?'now':''}"><span class="num">${r.targetYear%100}.${r.targetMonth}</span><span class="gz">${r.gzHan}</span><span>${ROLE_NAME[r.godRole]}</span></div>`).join('');
+  return `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>${esc(k.name)}의 사주</h2><label class="switch"><input type="checkbox" id="smToggle" checked> 사주 용어로 보기</label></div>
+    <div class="pillars">${pil}</div>
+    ${a.saju.timeCorrection&&a.saju.timeCorrection.note?`<p class="small muted">${a.saju.timeCorrection.note}</p>`:''}
+    <div class="gods">${gods}</div>
+    <p class="small muted">${a.isStrong?'신강':'신약'} 사주 · ${esc(a.ys.reason)}</p></section>
+  <section class="panel stack"><h2>지금 흐르는 운</h2><p class="small muted">흐르는 운은 지지 기준으로 봅니다.</p>${line('대운',cur.daewoon)}${line('세운',cur.sewoon)}${line('월운',cur.wolwoon)}</section>
+  <section class="panel stack"><h2>앞으로 12개월</h2><div class="months">${months}</div>
+    <p class="small muted">초록은 용신·희신 달, 붉은색은 병신 달입니다. 달마다 자세한 성장·학습 안내는 월간 리포트로 받아 보실 수 있어요.</p>
+    <div class="row"><a class="btn primary" href="${LINKS.kakao}" target="_blank" rel="noopener">월간 리포트·심명 상담 문의</a><span class="small muted">카카오톡 오픈채팅으로 연결됩니다</span></div></section>`;
+}
+function viewReport(k){
+  const t=todayIso(), y=Number(t.slice(0,4)), m=Number(t.slice(5,7));
+  const months=[0,1,2].map(i=>{ const mm=(m-1+i)%12+1, yy=y+Math.floor((m-1+i)/12); return `${yy}-${pad(mm)}`; });
+  const sel = months.includes(state.reportYm) ? state.reportYm : months[0];
+  let body; try{ body = window.MonthlyReport.renderHTML(window.MonthlyReport.build(k, sel, t)); }catch(e){ body=`<div class="empty">리포트를 만들지 못했어요: ${esc(e.message)}</div>`; }
+  return `<section class="stack"><div class="row" style="justify-content:space-between"><h2>월간 성장 리포트</h2>
+      <div class="filters">${months.map(x=>`<button class="chip" aria-pressed="${x===sel}" data-ym="${x}">${Number(x.slice(5))}월호</button>`).join('')}</div></div>
+    <p class="small muted">구독하시면 매달 1일 이 리포트를 PDF로 카카오톡에 보내 드려요. 지금은 미리 보기입니다.</p></section>
+  <section class="panel">${body}</section>
+  <div class="row"><a class="btn primary" href="${LINKS.kakao}" target="_blank" rel="noopener">월간 리포트 구독 문의</a></div>`;
+}
+function viewApps(k){
+  const st=L.compute(k.birth,todayIso(),k.entry).stage;
+  const L2=[['naming','심명 작명소','사주로 용신을 잡고 7축으로 이름을 채점해요','BIRTH_NAMING'],['elem','아이맞춤 초등학교','40문항 진단과 학교 공시 자료로 학교를 비교해요','KINDERGARTEN ELEMENTARY'],['college','대학 매칭','용신 오행과 내신으로 수시·정시 대학을 찾아요','FUTURE'],['kakao','와이튜브 상담','진로·진학·작명 상담을 카카오톡으로','']];
+  return `<section class="stack"><h2>연결 앱</h2><p class="muted small">지금 단계에 맞는 앱을 위에 보여 드려요.</p><div class="links">
+    ${L2.sort((a,b)=>(b[3].includes(st)?1:0)-(a[3].includes(st)?1:0)).map(([id,n,d,s])=>`<a class="link" href="${LINKS[id]}" target="_blank" rel="noopener"><b>${n}</b><span class="small muted">${d}</span>${s.includes(st)?'<span class="pill p-now" style="align-self:flex-start">지금 단계</span>':''}</a>`).join('')}</div></section>`;
+}
+function viewKid(k){
+  const def=L.defaultElementaryEntry(k.birth);
+  return `<section class="panel stack"><h2>${k.example?'우리 아이로 바꾸기':'아이 정보'}</h2>
+    <form class="child" id="kidForm">
+      <label class="fld">이름(태명도 괜찮아요)<input id="f-name" value="${esc(k.example?'':k.name)}" required placeholder="예: 하늘"></label>
+      <label class="fld">생년월일 (양력)<input id="f-birth" type="date" value="${k.birth}" required></label>
+      <label class="fld">태어난 시각<input id="f-time" type="time" value="${k.time||''}"></label>
+      <label class="fld">성별<select id="f-gender"><option value="F" ${k.gender==='F'?'selected':''}>여</option><option value="M" ${k.gender==='M'?'selected':''}>남</option></select></label>
+      <label class="fld">초등 입학<select id="f-entry"><option value="">기본 (${def.slice(0,4)}년 3월)</option><option value="early" ${k.entry&&k.entry<def?'selected':''}>조기입학 (${Number(def.slice(0,4))-1}년)</option><option value="late" ${k.entry&&k.entry>def?'selected':''}>입학 연기 (${Number(def.slice(0,4))+1}년)</option></select></label>
+      <div class="fld" style="justify-content:end"><button class="btn primary">저장</button></div>
+    </form>
+    <p class="small muted">태어난 시각을 모르면 비워 두세요. 그때 시계가 가리킨 시각을 넣으면 서머타임 시기도 자동으로 보정합니다. 정보는 이 기기 브라우저에만 저장되며, 회원 가입 버전에서는 보호자 동의 후 안전하게 보관됩니다.</p>
+    ${!k.example&&state.kids.length>1?`<button class="btn ghost" data-delkid>이 아이 삭제</button>`:''}</section>`;
+}
+function viewAccount(){
+  if(!C||!C.available()) return `<section class="panel stack"><h2>계정</h2><p class="muted">지금 화면에서는 서버에 연결할 수 없어요. 정보는 이 기기에만 저장됩니다. 회원 가입은 컴패스랩 웹 주소에서 할 수 있어요.</p></section>`;
+  const u=C.currentUser();
+  if(u){
+    const n=state.kids.filter(k=>k.sid).length;
+    return `<section class="panel stack"><h2>계정</h2>
+      <p>${esc(u.email)} 으로 로그인했어요.</p>
+      <p class="muted small">아이 ${n}명의 정보와 체크 기록이 서버에 보관됩니다. 다른 휴대폰이나 컴퓨터에서 같은 계정으로 로그인하면 그대로 이어서 볼 수 있어요.${cloud.at?` 마지막 저장 ${cloud.at.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}.`:''}</p>
+      ${cloud.status==='err'?`<p class="err-msg">저장하지 못했어요: ${esc(cloud.error)}</p>`:''}
+      <div class="row"><button class="btn primary" data-sync>지금 저장하기</button><button class="btn ghost" data-logout>로그아웃</button></div></section>`;
+  }
+  const real=state.kids.filter(k=>!k.example).length;
+  return `<section class="stack"><div class="panel stack"><h2>계정</h2>
+    <p class="muted small">로그인하면 아이 정보와 체크 기록이 서버에 안전하게 보관되고, 다른 기기에서도 이어서 볼 수 있어요.${real?` 지금 이 기기에 있는 아이 ${real}명의 기록도 가입하면 그대로 옮겨집니다.`:''}</p>
+    ${cloud.error?`<p class="err-msg">${esc(cloud.error)}</p>`:''}</div>
+    <div class="acct">
+    <form class="panel" id="loginForm"><h3>로그인</h3>
+      <label class="fld">이메일<input id="li-email" type="email" autocomplete="email" required></label>
+      <label class="fld">비밀번호<input id="li-pw" type="password" autocomplete="current-password" required></label>
+      <button class="btn primary">로그인</button></form>
+    <form class="panel" id="signupForm"><h3>처음이에요 (회원 가입)</h3>
+      <label class="fld">보호자 이름<input id="su-name" autocomplete="name" required placeholder="예: 서지원"></label>
+      <label class="fld">이메일<input id="su-email" type="email" autocomplete="email" required></label>
+      <label class="fld">비밀번호 (6자 이상)<input id="su-pw" type="password" autocomplete="new-password" minlength="6" required></label>
+      <div class="consent"><span class="label">보호자 동의</span>
+        <label><input type="checkbox" id="c-all"> 아래 항목에 모두 동의</label>
+        <label><input type="checkbox" class="c-req" value="TERMS" required> (필수) 이용약관</label>
+        <label><input type="checkbox" class="c-req" value="PRIVACY_COLLECT" required> (필수) 개인정보 수집·이용</label>
+        <label><input type="checkbox" class="c-req" value="CHILD_PROFILE" required> (필수) 만 14세 미만 자녀 정보 등록 (법정대리인 동의)</label>
+        <label><input type="checkbox" class="c-opt" value="SAJU_ANALYSIS"> (선택) 태어난 날 기반 성향·흐름 분석</label>
+        <label><input type="checkbox" class="c-opt" value="MONTHLY_REPORT"> (선택) 월간 성장 리포트 받기</label>
+        <label><input type="checkbox" class="c-opt" value="MARKETING"> (선택) 새 소식·혜택 안내</label></div>
+      <button class="btn primary">가입하고 저장하기</button></form>
+    </div></section>`;
+}
+function render(){
+  renderTop(); const k=kid();
+  const v={today:viewToday,grow:viewGrow,trait:viewTrait,inst:viewInst,report:viewReport,flow:viewFlow,apps:viewApps,kid:viewKid,account:viewAccount}[state.tab]||viewToday;
+  let html; try{ html=v(k); }catch(e){ html=`<div class="empty">이 화면을 그리지 못했어요: ${esc(e.message)}</div>`; }
+  $('#app').innerHTML = html + `<footer>컴패스랩 · 운영 와이튜브 · 사주 계산 엔진 ${S.ENGINE_VERSION||''} · 성향과 운은 참고용이며 진단이 아닙니다.</footer>`;
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('click', e=>{
+  if(e.target.closest('[data-logout]')){ C.signOut().then(()=>{ toast('로그아웃했어요'); render(); }); return; }
+  if(e.target.closest('[data-sync]')){ doSync(); return; }
+  const t=e.target.closest('[data-kid],[data-addkid],[data-tab],[data-filter],[data-mark],[data-delinst],[data-delkid],[data-ym]'); if(!t) return;
+  if(t.dataset.ym){ state.reportYm=t.dataset.ym; }
+  else if(t.dataset.kid){ state.cur=t.dataset.kid; }
+  else if('addkid' in t.dataset){ const id='k'+Date.now(); state.kids.push({id,name:'새 아이',birth:todayIso(),time:'',gender:'F',entry:null,done:{},dev:{},answers:{},insts:[]}); state.cur=id; state.tab='kid'; }
+  else if(t.dataset.tab){ state.tab=t.dataset.tab; }
+  else if(t.dataset.filter){ state.filter=t.dataset.filter; }
+  else if(t.dataset.mark){ const [iid,id,c]=t.dataset.mark.split('|'); const inst=kid().insts.find(x=>x.id===iid); inst.marks[id] = inst.marks[id]===c ? '' : c; }
+  else if(t.dataset.delinst){ const k=kid(); k.insts=k.insts.filter(x=>x.id!==t.dataset.delinst); toast('기관을 삭제했어요'); }
+  else if('delkid' in t.dataset){ const gone=kid(); if(gone.sid&&C&&C.currentUser()) C.archive(gone.sid).catch(err=>toast(err.message)); state.kids=state.kids.filter(x=>x.id!==state.cur); state.cur=state.kids[0].id; state.tab='today'; toast('삭제했어요'); }
+  save(); render(); if(t.dataset.tab) window.scrollTo({top:0});
+});
+document.addEventListener('change', e=>{
+  const t=e.target, k=kid();
+  if(t.dataset.task){ if(t.checked) k.done[t.dataset.task]=todayIso(); else delete k.done[t.dataset.task]; }
+  else if(t.dataset.dev){ if(t.checked) k.dev[t.dataset.dev]=todayIso(); else delete k.dev[t.dataset.dev]; }
+  else if(t.dataset.q){ k.answers[t.dataset.q]=Number(t.value); save(); const y=window.scrollY; render(); window.scrollTo({top:y}); return; }
+  else if(t.dataset.memo){ k.insts.find(x=>x.id===t.dataset.memo).memo=t.value; save(); return; }
+  else if(t.id==='smToggle'){ state.simmyeong=t.checked; }
+  else if(t.id==='c-all'){ document.querySelectorAll('.c-req,.c-opt').forEach(x=>x.checked=t.checked); return; }
+  else return;
+  save(); render();
+});
+document.addEventListener('submit', e=>{
+  e.preventDefault(); const k=kid();
+  if(e.target.id==='loginForm'||e.target.id==='signupForm'){ authSubmit(e.target); return; }
+  if(e.target.id==='addInst'){ const n=$('#instName').value.trim(); if(!n) return; (k.insts=k.insts||[]).push({id:'i'+Date.now(),name:n,kind:$('#instKind').value,marks:{},memo:''}); toast(`${n}을(를) 추가했어요`); }
+  if(e.target.id==='kidForm'){
+    const birth=$('#f-birth').value; if(!birth){ toast('생년월일을 넣어 주세요'); return; }
+    if(birth>todayIso()){ toast('생년월일이 오늘보다 늦어요. 날짜를 확인해 주세요'); return; }
+    const def=L.defaultElementaryEntry(birth), y=Number(def.slice(0,4)), ent=$('#f-entry').value;
+    Object.assign(k,{name:$('#f-name').value.trim()||'우리 아이',birth,time:$('#f-time').value||'',gender:$('#f-gender').value,entry: ent==='early'?`${y-1}-03-01`:ent==='late'?`${y+1}-03-01`:null});
+    if(k.example){ k.example=false; k.id='k'+Date.now(); state.cur=k.id; k.done={}; k.dev={}; k.answers={}; k.insts=[]; }
+    state.tab='today'; toast('저장했어요');
+  }
+  save(); render();
+});
+async function authSubmit(f){
+  const btn=f.querySelector('button'); btn.disabled=true; cloud.error='';
+  try{
+    if(f.id==='loginForm'){ await C.signIn($('#li-email').value.trim(), $('#li-pw').value); toast('로그인했어요'); }
+    else{
+      const req=[...document.querySelectorAll('.c-req')]; if(req.some(x=>!x.checked)){ throw new Error('필수 동의 3가지에 체크해 주세요.'); }
+      state.consents=[...document.querySelectorAll('.c-req:checked,.c-opt:checked')].map(x=>x.value);
+      state.parentName=$('#su-name').value.trim();
+      const r=await C.signUp($('#su-email').value.trim(), $('#su-pw').value, state.parentName);
+      try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+      if(r.needsConfirm){ cloud.error='가입 확인 메일을 보냈어요. 메일의 링크를 누른 뒤 여기서 로그인해 주세요.'; }
+      else toast('가입했어요');
+    }
+  }catch(err){ cloud.error=err.message; }
+  btn.disabled=false; render();
+}
+if(C){ C.onChange(u=>{ if(u){ state.tab=state.tab==='account'?'today':state.tab; doSync(); } else { cloud.status='off'; render(); } }); C.init().catch(()=>{}); }
+try{ const st=document.createElement('style'); st.textContent=window.MonthlyReport.CSS; document.head.appendChild(st); }catch(e){}
+render();
+})();
+</script>
