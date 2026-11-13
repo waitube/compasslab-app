@@ -75,20 +75,38 @@ main{padding-block:20px 72px;display:flex;flex-direction:column;gap:20px}
 .empty{padding:22px;text-align:center;color:var(--ink2);border:1px dashed var(--line);border-radius:14px}
 
 /* 아이 띠 */
-.hero{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end}
 .hero .who{display:flex;flex-direction:column;gap:2px;min-width:0}
-.stage-name{font-family:var(--f-display);font-size:2.1rem;color:var(--leaf);line-height:1.15}
 .age{font-family:var(--f-num)}
-/* 성장 자: 출생 → 백일 → 돌 → 유치원 → 초등 → 중학교, 실제 날짜 비율로 */
-.ruler{position:relative;height:66px;margin-top:6px}
-.ruler .bar{position:absolute;left:0;right:0;top:22px;height:6px;border-radius:3px;background:var(--line)}
-.ruler .fill{position:absolute;left:0;top:22px;height:6px;border-radius:3px;background:var(--leaf)}
-.ruler .tick{position:absolute;top:14px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:.72rem;color:var(--ink2);white-space:nowrap}
-.ruler .tick i{width:14px;height:14px;border-radius:50%;background:var(--sheet);border:2px solid var(--line)}
-.ruler .tick.done i{background:var(--leaf);border-color:var(--leaf)}
-.ruler .tick.gold i{border-color:var(--gold);background:var(--gold-soft)}
-.ruler .tick:first-child{transform:none;align-items:flex-start} .ruler .tick:last-child{transform:translateX(-100%);align-items:flex-end}
-.ruler .you{position:absolute;top:0;transform:translateX(-50%);font-size:.7rem;font-weight:700;color:var(--gold)}
+/* 평생 이정표: 출생 → 돌 → 유치원 → 초등 → 중학교 → 고등학교 → 대학·사회, 같은 간격 + 지금 구간 안에서 비율 */
+.hero-card{display:flex;flex-direction:column;gap:18px;padding:22px;background:linear-gradient(160deg,var(--leaf-soft) 0%,var(--sheet) 55%)}
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+.stage-line{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.stage-name{font-family:var(--f-display);font-size:clamp(1.9rem,6vw,2.6rem);font-weight:700;color:var(--leaf);line-height:1.1;letter-spacing:-.01em}
+.grade{font-size:1rem;font-weight:500;color:var(--leaf);background:var(--sheet);border:1px solid var(--leaf);border-radius:999px;padding:2px 10px}
+.focus-line{margin:4px 0 0;color:var(--ink2);font-size:.92rem}
+.next-card{display:flex;flex-direction:column;align-items:flex-end;gap:1px;text-align:right;background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:120px}
+.next-card b{font-family:var(--f-display);font-size:1rem}
+.dday{font-size:1.6rem;font-weight:500;color:var(--gold);line-height:1.1}
+.path{position:relative;height:84px;margin:4px 6px 0}
+.track{position:absolute;left:0;right:0;top:34px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.track-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--leaf),color-mix(in srgb,var(--leaf) 70%,var(--gold)))}
+.you{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:2;pointer-events:none}
+.you span{background:var(--gold);color:var(--sheet);font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.you::after{content:"";width:2px;height:14px;background:var(--gold)}
+.stop{position:absolute;top:29px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;white-space:nowrap}
+.stop i{width:18px;height:18px;border-radius:50%;background:var(--sheet);border:3px solid var(--line);box-sizing:border-box}
+.stop.done i{background:var(--leaf);border-color:var(--leaf)}
+.stop.next i{border-color:var(--gold);background:var(--gold-soft);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 22%,transparent)}
+.stop-name{font-size:.74rem;color:var(--ink2)} .stop.next .stop-name{color:var(--ink);font-weight:700}
+.stop-date{font-size:.66rem;color:var(--ink2);opacity:.8}
+.stop-name .short{display:none}
+.stop:first-child{transform:translateX(-9px);align-items:flex-start} .stop:last-of-type{transform:translateX(calc(-100% + 9px));align-items:flex-end}
+.focus-links{display:flex;flex-wrap:wrap;gap:8px}
+.focus-link{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:999px;background:var(--sheet);border:1px solid var(--line);color:var(--leaf);font-size:.85rem;font-weight:500;text-decoration:none}
+.focus-link:hover{border-color:var(--leaf)}
+@media (max-width:520px){ .hero{grid-template-columns:1fr} .next-card{text-align:left;flex-direction:row;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
+  .stop-date{display:none} .stop-name{font-size:.68rem} .stop-name .long{display:none} .stop-name .short{display:inline} .path{height:72px} }
+@media (prefers-reduced-motion:no-preference){ .track-fill{transition:width .6s ease} }
 
 /* 할 일 */
 .task{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:start}
@@ -1072,7 +1090,7 @@ function analyzePillarStrength(saju, hasTime){
    INFANT       : 백일 ~ 유치원 입학일 전날 (유치원 입학 = 초등입학일 - 3년, 만3세반)
    KINDERGARTEN : 유치원 입학일 ~ 초등입학일 전날
    ELEMENTARY   : 초등입학일 ~ 6년 뒤 전날 (매년 3월 1일 학년 증가)
-   FUTURE       : 그 이후 (중학교 이후 — 2차 개발)
+   FUTURE       : 그 이후 (서버 단계. 화면은 lifePath()로 중학교·고등학교·대학까지 이어서 보여 줌)
    초등입학일 기본값 = 출생연도 + 7년의 3월 1일 (1~12월생 같은 학년). 조기입학·유예는 부모가 수정.
    ============================================================ */
 (function (root, factory) {
@@ -1123,7 +1141,33 @@ function analyzePillarStrength(saju, hasTime){
       ruleVersion: RULE_VERSION,
     };
   }
-  return { RULE_VERSION, STAGES, STAGE_MODULES, compute, defaultElementaryEntry };
+  /* 평생 경로 (화면 표시용) — 서버 단계(compute)는 그대로 두고, 중학교 이후까지 이어서 보여 준다.
+     학년은 3월 1일 기준: 중학교 = 초등입학 +6년, 고등학교 = +9년, 대학(진학 기준) = +12년 */
+  const PATH = [
+    ['BIRTH', '출생'], ['DOL', '돌'], ['KINDER', '유치원'], ['ELEM', '초등 입학'],
+    ['MIDDLE', '중학교'], ['HIGH', '고등학교'], ['UNIV', '대학·사회'],
+  ];
+  function lifePath(birthIso, onIso, entryIso) {
+    const c = compute(birthIso, onIso, entryIso), m = c.milestones, e = m.elementaryEntry;
+    const dates = { BIRTH: birthIso, DOL: m.doljanchi, KINDER: m.kindergartenEntry, ELEM: e,
+                    MIDDLE: addYears(e, 6), HIGH: addYears(e, 9), UNIV: addYears(e, 12) };
+    const points = PATH.map(([code, name]) => ({ code, name, date: dates[code], done: dates[code] <= onIso }));
+    const gradeFrom = start => Number(onIso.slice(0, 4)) - Number(start.slice(0, 4)) - (onIso.slice(5) < start.slice(5) ? 1 : 0) + 1;
+    let phase, label, grade = null;
+    if (c.stage !== 'FUTURE') { phase = c.stage; label = STAGES[c.stage].label; grade = c.grade; }
+    else if (onIso < dates.HIGH) { phase = 'MIDDLE'; label = '중학교'; grade = gradeFrom(dates.MIDDLE); }
+    else if (onIso < dates.UNIV) { phase = 'HIGH'; label = '고등학교'; grade = gradeFrom(dates.HIGH); }
+    else { phase = 'ADULT'; label = '대학·사회'; }
+    // 오늘 위치: 이정표를 같은 간격으로 놓고, 지금 구간 안에서 비율로 (아기도 고등학생도 막대가 고르게 움직이게)
+    let idx = points.length - 1, frac = 0;
+    for (let i = 0; i < points.length - 1; i++) {
+      if (onIso < points[i + 1].date) { idx = i; const a = toUTC(points[i].date), b = toUTC(points[i + 1].date); frac = Math.max(0, Math.min(1, (toUTC(onIso) - a) / (b - a))); break; }
+    }
+    const pos = points.length > 1 ? (idx + frac) / (points.length - 1) * 100 : 0;
+    const next = points.find(p => p.date > onIso) || null;
+    return { phase, label, grade, points, pos, next, stage: c.stage };
+  }
+  return { RULE_VERSION, STAGES, STAGE_MODULES, compute, defaultElementaryEntry, lifePath };
 });
 
 </script>
@@ -1173,7 +1217,26 @@ function build(k, today){
   add('dolbom','입학','돌봄교실·방과후 신청',`${ey}-01-01`,`${ey}-02-15`,'신청 기간이 짧아요 · 예비소집 때 서류 받기');
   add('acad','입학','학원 일정을 초등 시간표에 맞추기',`${ey}-02-01`,`${ey}-02-28`,'');
   add('entry','입학','초등학교 입학',entry,entry,'');
-  add('middle','입학','중학교 준비 시작 (6학년 2학기)',`${ey+5}-09-01`,`${ey+5}-12-31`,'중학교 이후 단계는 다음 버전에서 열려요');
+  // ---- 중학교 (초등입학 +6년) ----
+  const my=ey+6, hy=ey+9, cy=ey+11;   // 중학교 입학 해, 고등학교 입학 해, 고3 해
+  add('middle','입학','중학교 준비 시작 (6학년 2학기)',`${my-1}-09-01`,`${my-1}-11-30`,'학교군·배정 방식은 교육지원청 공지 확인');
+  add('midassign','입학','중학교 배정 신청',`${my-1}-12-01`,`${my-1}-12-31`,'보통 6학년 12월 · 학교에서 안내 · 지역마다 달라요');
+  add('midentry','입학','중학교 입학',`${my}-03-01`,`${my}-03-01`,'');
+  add('freesem','진로','중1 진로 탐색 (자유학기)',`${my}-03-01`,`${my}-12-31`,'시험 부담이 적은 시기 · 흥미·적성 검사와 체험 활동으로 진로 후보 좁히기');
+  add('hsexplore','진로','고등학교 유형 알아보기 (일반고·특목고·자사고·특성화고)',`${my+1}-09-01`,`${my+2}-08-31`,'성향과 성적에 맞는 유형 찾기 · 학교 설명회는 보통 중3 여름~가을');
+  add('hsapply1','입학','고등학교 원서 — 전기 (과학고·영재학교·특성화고 등)',`${hy-1}-08-01`,`${hy-1}-12-15`,'학교 유형마다 접수 시기가 달라요 · 교육청 고입 일정 확인');
+  add('hsapply2','입학','고등학교 원서 — 후기 (일반고·외고·국제고·자사고)',`${hy-1}-12-01`,`${hy-1}-12-20`,'보통 12월 · 지역별 일정은 교육청 공지 확인');
+  // ---- 고등학교 (초등입학 +9년) ----
+  add('hsentry','입학','고등학교 입학',`${hy}-03-01`,`${hy}-03-01`,'');
+  add('subject1','진로','2학년 선택과목 정하기 (고교학점제)',`${hy}-09-01`,`${hy}-11-30`,'가고 싶은 학과에서 권하는 과목 확인 · 학교 수강 신청 일정에 맞추기');
+  add('record2','진로','진로 맞춤 학생부 활동 정리 (고2)',`${hy+1}-03-01`,`${hy+1}-12-31`,'희망 학과와 이어지는 탐구·동아리·독서 기록','college');
+  add('univplan','진로','대학·학과 매칭으로 수시 지원 전략 세우기',`${hy+1}-12-01`,`${cy}-06-30`,'내신과 성향으로 지원 대학 후보 좁히기','college');
+  add('mock6','입시','6월 모의평가',`${cy}-06-01`,`${cy}-06-10`,'평가원 주관 · 정확한 날짜는 한국교육과정평가원 공지');
+  add('mock9','입시','9월 모의평가',`${cy}-09-01`,`${cy}-09-10`,'수시 지원 전 마지막 모의평가');
+  add('susi','입시','수시 원서 접수 (최대 6회)',`${cy}-09-08`,`${cy}-09-15`,'보통 9월 둘째 주 · 대학별 일정 확인');
+  add('csat','입시','대학수학능력시험',`${cy}-11-10`,`${cy}-11-20`,'보통 11월 셋째 주 목요일 · 정확한 날짜는 평가원 발표');
+  add('jungsi','입시','정시 원서 접수 (가·나·다군)',`${cy}-12-26`,`${cy+1}-01-06`,'보통 12월 말~1월 초');
+  add('univ','입학','대학 입학 · 사회 첫걸음',`${cy+1}-03-01`,`${cy+1}-03-01`,'');
   const t=today;
   T.forEach(x=>{ x.done=!!(k.done&&k.done[x.id]); x.when = t> x.to ? 'past' : t>=x.from ? 'now' : (toUTC(x.from)-toUTC(t))/864e5<=90 ? 'soon' : 'later'; x.status = x.done?'done':x.when; });
   return T.sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0);
@@ -1677,24 +1740,35 @@ function renderTop(){
   $('#kids').innerHTML = state.kids.map(k=>`<button class="kid" aria-pressed="${k.id===state.cur}" data-kid="${k.id}">${esc(k.name)}${k.example?' <span class="small">(예시)</span>':''}</button>`).join('') + `<button class="kid add" data-addkid>＋ 아이 추가</button>`;
   $('#tabs').innerHTML = TABS.map(([id,n])=>`<button class="tab" role="tab" aria-selected="${state.tab===id}" data-tab="${id}">${n}</button>`).join('');
 }
+const FOCUS = {
+  BIRTH_NAMING:{line:'이름 짓고, 첫 접종·검진을 챙기는 시기', links:[['naming','심명 작명소에서 이름 짓기'],['vaccine','예방접종도우미']]},
+  INFANT:{line:'건강검진과 발달을 살피고, 어린이집·유치원을 고르는 시기', links:[['childcare','어린이집 입소대기'],['kinder','유치원 처음학교로']]},
+  KINDERGARTEN:{line:'성향에 맞는 활동을 찾고, 초등 입학을 준비하는 시기', links:[['elem','아이맞춤 초등학교 찾기'],['schoolzone','학교 배정 확인']]},
+  ELEMENTARY:{line:'학교생활에 적응하며 흥미와 강점을 키우는 시기', links:[['elem','아이맞춤 초등학교'],['kakao','와이튜브 상담']]},
+  MIDDLE:{line:'진로 후보를 좁히고, 고등학교 유형을 정하는 시기', links:[['kakao','고교 선택 상담'],['college','대학·학과 미리 보기']]},
+  HIGH:{line:'학생부를 진로에 맞추고, 대입 전략을 세우는 시기', links:[['college','대학 매칭앱'],['kakao','와이튜브 입시 상담']]},
+  ADULT:{line:'대학 생활과 첫 직장, 다음 사이클을 준비하는 시기', links:[['kakao','와이튜브 상담']]},
+};
+const SHORT={BIRTH:'출생',DOL:'돌',KINDER:'유치원',ELEM:'초등',MIDDLE:'중학교',HIGH:'고교',UNIV:'대학'};
 function heroHTML(k){
-  const t=todayIso(), st=L.compute(k.birth,t,k.entry), m=st.milestones;
-  const pts=[['출생',k.birth],['백일',m.baekil],['돌',m.doljanchi],['유치원',m.kindergartenEntry],['초등 입학',m.elementaryEntry],['중학교',m.middleEntry]];
-  const t0=toUTC(k.birth), t1=toUTC(m.middleEntry), pos=s=>Math.max(0,Math.min(100,(toUTC(s)-t0)/(t1-t0)*100));
-  // 이름표가 겹치지 않게: 중요한 이정표부터 자리를 잡고, 너무 가까운 것은 점만 남긴다
-  const shown=new Set(), taken=[];
-  for(const n of ['돌','초등 입학','유치원','중학교','출생','백일']){ const p=pts.find(x=>x[0]===n); const x=pos(p[1]);
-    if(taken.every(y=>Math.abs(y-x)>=12)){ shown.add(n); taken.push(x); } }
-  const next = pts.find(p=>p[1]>t);
-  const dday = next ? Math.round((toUTC(next[1])-toUTC(t))/864e5) : null;
-  return `<section class="panel stack">
+  const t=todayIso(), P=L.lifePath(k.birth,t,k.entry), f=FOCUS[P.phase]||FOCUS.ADULT;
+  const dday = P.next ? Math.round((toUTC(P.next.date)-toUTC(t))/864e5) : null;
+  const n=P.points.length, at=i=>i/(n-1)*100, cur=P.points.findIndex(p=>P.next&&p.code===P.next.code);
+  const youPos=Math.max(3,Math.min(97,P.pos));
+  return `<section class="panel hero-card">
     ${k.example?`<div class="notice">예시 아이입니다. <b>아이 정보</b> 탭에서 우리 아이로 바꾸거나 <b>＋ 아이 추가</b>를 누르세요. ${C&&C.available()?'<b>계정</b> 탭에서 가입하면 서버에 안전하게 보관돼요.':'입력한 정보는 이 기기에만 저장됩니다.'}</div>`:''}
-    <div class="hero"><div class="who"><span class="label">${esc(k.name)} · <span class="age">${ageText(k.birth,t)}</span></span>
-      <span class="stage-name">${st.label}</span></div>
-      ${next?`<div class="small muted" style="text-align:right">${next[0]}까지<br><b class="num" style="font-size:1.4rem;color:var(--gold)">D-${dday}</b></div>`:''}</div>
-    <div class="ruler" aria-label="성장 이정표"><div class="bar"></div><div class="fill" style="width:${pos(t)}%"></div>
-      <span class="you" style="left:${pos(t)}%">오늘</span>
-      ${pts.map(([n,d])=>`<span class="tick ${d<=t?'done':''} ${n==='돌'||n==='초등 입학'?'gold':''}" style="left:${pos(d)}%" title="${n} ${fmt(d)}"><i></i>${shown.has(n)?`${n}<span class="num">${fmtShort(d)}</span>`:`<span class="sr">${n} ${fmt(d)}</span>`}</span>`).join('')}</div>
+    <div class="hero">
+      <div class="who"><span class="label">${esc(k.name)} · <span class="age">${ageText(k.birth,t)}</span></span>
+        <div class="stage-line"><span class="stage-name">${P.label}</span>${P.grade?`<span class="grade num">${P.grade}학년</span>`:''}</div>
+        <p class="focus-line">${f.line}</p></div>
+      ${P.next?`<div class="next-card"><span class="label">다음 이정표</span><b>${P.next.name}</b><span class="dday num">D-${dday.toLocaleString('ko-KR')}</span><span class="small muted num">${fmt(P.next.date)}</span></div>`:''}
+    </div>
+    <div class="path" aria-label="평생 이정표">
+      <div class="track"><div class="track-fill" style="width:${P.pos}%"></div></div>
+      <span class="you" style="left:${youPos}%"><span>오늘</span></span>
+      ${P.points.map((p,i)=>`<span class="stop ${p.done?'done':''} ${i===cur?'next':''}" style="left:${at(i)}%" title="${p.name} ${fmt(p.date)}"><i></i><span class="stop-name"><span class="long">${p.name}</span><span class="short">${SHORT[p.code]}</span></span><span class="stop-date num">${fmtShort(p.date)}</span></span>`).join('')}
+    </div>
+    <div class="focus-links">${f.links.map(([l,txt])=>`<a class="focus-link" href="${LINKS[l]}" target="_blank" rel="noopener">${txt} <span aria-hidden="true">↗</span></a>`).join('')}</div>
   </section>`;
 }
 function taskRow(x){
@@ -1707,11 +1781,11 @@ function taskRow(x){
 function viewToday(k){
   const T=tasks(k), f=state.filter;
   const list = f==='soon' ? T.filter(x=>x.when==='now'||x.when==='soon'||(x.when==='past'&&!x.done&&(toUTC(todayIso())-toUTC(x.to))/864e5<60)) : f==='all' ? T : T.filter(x=>x.cat===f);
-  const cats=['soon','all','행정','접종','검진','기관','입학','준비'], names={soon:'지금·곧',all:'전체'};
+  const cats=['soon','all',...['행정','접종','검진','기관','입학','진로','입시','준비'].filter(c=>T.some(x=>x.cat===c&&x.when!=='past'))], names={soon:'지금·곧',all:'전체'};
   return heroHTML(k) + `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>할 일</h2><span class="small muted">생년월일로 자동으로 만든 일정</span></div>
     <div class="filters">${cats.map(c=>`<button class="chip" aria-pressed="${f===c}" data-filter="${c}">${names[c]||c}</button>`).join('')}</div>
     <div>${list.length?list.map(taskRow).join(''):'<div class="empty">지금 챙길 일이 없어요. 전체 보기에서 앞으로의 일정을 확인하세요.</div>'}</div>
-    <p class="small muted">접종·검진·지원 제도는 매년 바뀔 수 있어요. 공식 자료(예방접종도우미, 정부24, 아이사랑)로 확인하세요. 지역마다 다른 입학 일정은 대략적인 시기만 보여 줍니다.</p></section>`;
+    <p class="small muted">접종·검진·지원 제도는 매년 바뀔 수 있어요. 공식 자료(예방접종도우미, 정부24, 아이사랑, 교육청·평가원 공지)로 확인하세요. 입학·입시 일정은 해마다 조금씩 달라서 대략적인 시기만 보여 줍니다.</p></section>`;
 }
 function viewGrow(k){
   const mo=monthsOld(k.birth,todayIso());
