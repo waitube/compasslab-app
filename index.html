@@ -32,6 +32,7 @@ p{margin:0}
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .muted{color:var(--ink2)} .small{font-size:.86rem}
 .label{font-size:.75rem;letter-spacing:.08em;color:var(--ink2);font-weight:700}
 .wrap{max-width:880px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -1388,12 +1389,13 @@ return { VAX, CHECKUP, ORAL, build, addDays, addMonths };
 
   /* ---------- 변환 ---------- */
   const hm = t => (t ? String(t).slice(0, 5) : '');
+  const ymd = d => (d instanceof Date ? d.toISOString() : String(d)).slice(0, 10);
   function fromServer(r) {
     const s = r.app_state || {};
     return {
       id: 's' + r.person_id, sid: r.person_id, familyId: r.family_id,
-      name: r.display_name, birth: String(r.birth_date).slice(0, 10), time: hm(r.birth_time),
-      gender: r.gender || 'F', entry: r.entry_date_override ? String(r.elementary_entry_date).slice(0, 10) : null,
+      name: r.display_name, birth: ymd(r.birth_date), time: hm(r.birth_time),
+      gender: r.gender || 'F', entry: r.entry_date_override ? ymd(r.elementary_entry_date) : null,
       done: s.done || {}, dev: s.dev || {}, answers: s.answers || {}, insts: s.insts || [],
       syncedAt: r.state_updated_at || null,
     };
@@ -1679,16 +1681,20 @@ function heroHTML(k){
   const t=todayIso(), st=L.compute(k.birth,t,k.entry), m=st.milestones;
   const pts=[['출생',k.birth],['백일',m.baekil],['돌',m.doljanchi],['유치원',m.kindergartenEntry],['초등 입학',m.elementaryEntry],['중학교',m.middleEntry]];
   const t0=toUTC(k.birth), t1=toUTC(m.middleEntry), pos=s=>Math.max(0,Math.min(100,(toUTC(s)-t0)/(t1-t0)*100));
+  // 이름표가 겹치지 않게: 중요한 이정표부터 자리를 잡고, 너무 가까운 것은 점만 남긴다
+  const shown=new Set(), taken=[];
+  for(const n of ['돌','초등 입학','유치원','중학교','출생','백일']){ const p=pts.find(x=>x[0]===n); const x=pos(p[1]);
+    if(taken.every(y=>Math.abs(y-x)>=12)){ shown.add(n); taken.push(x); } }
   const next = pts.find(p=>p[1]>t);
   const dday = next ? Math.round((toUTC(next[1])-toUTC(t))/864e5) : null;
   return `<section class="panel stack">
-    ${k.example?'<div class="notice">예시 아이입니다. <b>아이 정보</b> 탭에서 우리 아이로 바꾸거나 <b>＋ 아이 추가</b>를 누르세요. 입력한 정보는 이 기기에만 저장됩니다.</div>':''}
+    ${k.example?`<div class="notice">예시 아이입니다. <b>아이 정보</b> 탭에서 우리 아이로 바꾸거나 <b>＋ 아이 추가</b>를 누르세요. ${C&&C.available()?'<b>계정</b> 탭에서 가입하면 서버에 안전하게 보관돼요.':'입력한 정보는 이 기기에만 저장됩니다.'}</div>`:''}
     <div class="hero"><div class="who"><span class="label">${esc(k.name)} · <span class="age">${ageText(k.birth,t)}</span></span>
       <span class="stage-name">${st.label}</span></div>
       ${next?`<div class="small muted" style="text-align:right">${next[0]}까지<br><b class="num" style="font-size:1.4rem;color:var(--gold)">D-${dday}</b></div>`:''}</div>
     <div class="ruler" aria-label="성장 이정표"><div class="bar"></div><div class="fill" style="width:${pos(t)}%"></div>
       <span class="you" style="left:${pos(t)}%">오늘</span>
-      ${pts.map(([n,d])=>`<span class="tick ${d<=t?'done':''} ${n==='돌'||n==='초등 입학'?'gold':''}" style="left:${pos(d)}%"><i></i>${n}<span class="num">${fmtShort(d)}</span></span>`).join('')}</div>
+      ${pts.map(([n,d])=>`<span class="tick ${d<=t?'done':''} ${n==='돌'||n==='초등 입학'?'gold':''}" style="left:${pos(d)}%" title="${n} ${fmt(d)}"><i></i>${shown.has(n)?`${n}<span class="num">${fmtShort(d)}</span>`:`<span class="sr">${n} ${fmt(d)}</span>`}</span>`).join('')}</div>
   </section>`;
 }
 function taskRow(x){
