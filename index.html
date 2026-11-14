@@ -93,15 +93,29 @@ main{padding-block:20px 72px;display:flex;flex-direction:column;gap:20px}
 .you{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:2;pointer-events:none}
 .you span{background:var(--gold);color:var(--sheet);font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .you::after{content:"";width:2px;height:14px;background:var(--gold)}
-.stop{position:absolute;top:29px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;white-space:nowrap}
+.stop{position:absolute;top:29px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;white-space:nowrap;background:none;border:0;padding:0;font:inherit;cursor:pointer;color:inherit}
+.stop:hover .stop-name{color:var(--leaf);text-decoration:underline}
+.stop.sel i{box-shadow:0 0 0 4px color-mix(in srgb,var(--leaf) 30%,transparent)} .stop.sel .stop-name{color:var(--leaf);font-weight:700}
 .stop i{width:18px;height:18px;border-radius:50%;background:var(--sheet);border:3px solid var(--line);box-sizing:border-box}
 .stop.done i{background:var(--leaf);border-color:var(--leaf)}
 .stop.next i{border-color:var(--gold);background:var(--gold-soft);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 22%,transparent)}
 .stop-name{font-size:.74rem;color:var(--ink2)} .stop.next .stop-name{color:var(--ink);font-weight:700}
 .stop-date{font-size:.66rem;color:var(--ink2);opacity:.8}
 .stop-name .short{display:none}
-.stop:first-child{transform:translateX(-9px);align-items:flex-start} .stop:last-of-type{transform:translateX(calc(-100% + 9px));align-items:flex-end}
+.stop:first-of-type{transform:translateX(-9px);align-items:flex-start} .stop:last-of-type{transform:translateX(calc(-100% + 9px));align-items:flex-end}
 .focus-links{display:flex;flex-wrap:wrap;gap:8px}
+.path-hint{margin:-8px 0 0}
+.period-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.period-stats div{background:var(--bg);border-radius:10px;padding:10px;display:flex;flex-direction:column;align-items:center}
+.period-stats b{font-size:1.5rem;color:var(--leaf);line-height:1.2} .period-stats span{font-size:.8rem;color:var(--ink2)}
+.grp-title{font-size:.95rem;margin-top:6px}
+.done-on{color:var(--leaf);font-weight:500}
+.note{display:grid;grid-template-columns:auto auto 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.note:last-child{border-bottom:0} .note-date{font-size:.8rem;color:var(--ink2)} .note-text{min-width:0;overflow-wrap:anywhere}
+.note-form{display:grid;grid-template-columns:auto auto 1fr auto;gap:8px}
+.note-form input,.note-form select{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--bg);color:var(--ink);font:inherit;min-width:0}
+details.panel summary{cursor:pointer}
+@media (max-width:560px){ .note-form{grid-template-columns:1fr 1fr} .note-form #n-text{grid-column:1/-1} .note-form button{grid-column:1/-1} .note{grid-template-columns:auto 1fr auto} .note .pill{display:none} }
 .focus-link{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:999px;background:var(--sheet);border:1px solid var(--line);color:var(--leaf);font-size:.85rem;font-weight:500;text-decoration:none}
 .focus-link:hover{border-color:var(--leaf)}
 @media (max-width:520px){ .hero{grid-template-columns:1fr} .next-card{text-align:left;flex-direction:row;flex-wrap:wrap;gap:2px 10px;align-items:baseline}
@@ -1238,7 +1252,7 @@ function build(k, today){
   add('jungsi','입시','정시 원서 접수 (가·나·다군)',`${cy}-12-26`,`${cy+1}-01-06`,'보통 12월 말~1월 초');
   add('univ','입학','대학 입학 · 사회 첫걸음',`${cy+1}-03-01`,`${cy+1}-03-01`,'');
   const t=today;
-  T.forEach(x=>{ x.done=!!(k.done&&k.done[x.id]); x.when = t> x.to ? 'past' : t>=x.from ? 'now' : (toUTC(x.from)-toUTC(t))/864e5<=90 ? 'soon' : 'later'; x.status = x.done?'done':x.when; });
+  T.forEach(x=>{ x.done=!!(k.done&&k.done[x.id]); x.doneOn=x.done?k.done[x.id]:null; x.when = t> x.to ? 'past' : t>=x.from ? 'now' : (toUTC(x.from)-toUTC(t))/864e5<=90 ? 'soon' : 'later'; x.status = x.done?'done':x.when; });
   return T.sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:0);
 }
 
@@ -1459,11 +1473,11 @@ return { VAX, CHECKUP, ORAL, build, addDays, addMonths };
       id: 's' + r.person_id, sid: r.person_id, familyId: r.family_id,
       name: r.display_name, birth: ymd(r.birth_date), time: hm(r.birth_time),
       gender: r.gender || 'F', entry: r.entry_date_override ? ymd(r.elementary_entry_date) : null,
-      done: s.done || {}, dev: s.dev || {}, answers: s.answers || {}, insts: s.insts || [],
+      done: s.done || {}, dev: s.dev || {}, answers: s.answers || {}, insts: s.insts || [], notes: s.notes || [],
       syncedAt: r.state_updated_at || null,
     };
   }
-  const stateOf = k => ({ done: k.done || {}, dev: k.dev || {}, answers: k.answers || {}, insts: k.insts || [] });
+  const stateOf = k => ({ done: k.done || {}, dev: k.dev || {}, answers: k.answers || {}, insts: k.insts || [], notes: k.notes || [] });
   const profileOf = k => ({ name: k.name, birth: k.birth, time: k.time || '', gender: k.gender, entry: k.entry || null });
 
   async function pull() {
@@ -1726,7 +1740,7 @@ const CK = [
 function hotGroups(k){ const f=finalAreas(k), h=new Set(); if(f.adapt<45){h.add(5);h.add(3);} if(f.active>=60){h.add(4);h.add(2);} if(f.peer<45){h.add(3);h.add(4);} if(f.focus>=60) h.add(4); if(f.habit<45){h.add(2);h.add(4);} return h; }
 
 /* ---------- 화면 ---------- */
-const TABS = [['today','할 일'],['grow','성장 기록'],['trait','성향·학원'],['inst','기관 고르기'],['report','월간 리포트'],['flow','심명 보기'],['apps','연결 앱'],['kid','아이 정보'],['account','계정']];
+const TABS = [['today','할 일'],['grow','성장 기록'],['trait','성향·진로'],['inst','학교 고르기'],['report','월간 리포트'],['flow','심명 보기'],['apps','연결 앱'],['kid','아이 정보'],['account','계정']];
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200); }
 function renderPill(){
   const el=$('#syncPill'); if(!el) return;
@@ -1766,8 +1780,9 @@ function heroHTML(k){
     <div class="path" aria-label="평생 이정표">
       <div class="track"><div class="track-fill" style="width:${P.pos}%"></div></div>
       <span class="you" style="left:${youPos}%"><span>오늘</span></span>
-      ${P.points.map((p,i)=>`<span class="stop ${p.done?'done':''} ${i===cur?'next':''}" style="left:${at(i)}%" title="${p.name} ${fmt(p.date)}"><i></i><span class="stop-name"><span class="long">${p.name}</span><span class="short">${SHORT[p.code]}</span></span><span class="stop-date num">${fmtShort(p.date)}</span></span>`).join('')}
+      ${P.points.map((p,i)=>`<button type="button" class="stop ${p.done?'done':''} ${i===cur?'next':''} ${state.period===p.code?'sel':''}" style="left:${at(i)}%" data-period="${p.code}" aria-pressed="${state.period===p.code}" title="${p.name} 시기 보기"><i></i><span class="stop-name"><span class="long">${p.name}</span><span class="short">${SHORT[p.code]}</span></span><span class="stop-date num">${fmtShort(p.date)}</span></button>`).join('')}
     </div>
+    <p class="path-hint small muted">이정표를 누르면 그 시기에 한 일과 기록을 볼 수 있어요.</p>
     <div class="focus-links">${f.links.map(([l,txt])=>`<a class="focus-link" href="${LINKS[l]}" target="_blank" rel="noopener">${txt} <span aria-hidden="true">↗</span></a>`).join('')}</div>
   </section>`;
 }
@@ -1776,12 +1791,39 @@ function taskRow(x){
   const when = x.from===x.to ? fmt(x.from) : `${fmt(x.from)} ~ ${fmt(x.to)}`;
   return `<div class="task ${x.done?'is-done':''}"><input type="checkbox" id="t-${x.id}" data-task="${x.id}" ${x.done?'checked':''} aria-label="${esc(x.title)} 완료">
     <label for="t-${x.id}" class="t">${esc(x.title)}<span class="cat">${x.cat}</span></label><span class="pill ${pill[0]}">${pill[1]}</span>
-    <div class="d"><span class="num">${when}</span>${x.note?' · '+esc(x.note):''}${x.link?` · <a href="${LINKS[x.link]}" target="_blank" rel="noopener">바로 가기</a>`:''}</div></div>`;
+    <div class="d">${x.done?`<span class="done-on">${fmt(x.doneOn)} 체크 · </span>`:''}<span class="num">${when}</span>${x.note?' · '+esc(x.note):''}${x.link?` · <a href="${LINKS[x.link]}" target="_blank" rel="noopener">바로 가기</a>`:''}</div></div>`;
 }
+const CAT_NOTE=['성장·발달','학교생활','상·활동','관심사','상담 메모','기타'];
+function periodOf(k,code){
+  const P=L.lifePath(k.birth,todayIso(),k.entry), i=P.points.findIndex(p=>p.code===code);
+  return { P, i, pt:P.points[i], from:P.points[i].date, to:P.points[i+1]?P.points[i+1].date:'9999-12-31', nextName:P.points[i+1]?P.points[i+1].name:'' };
+}
+function viewPeriod(k){
+  const {pt,from,to,nextName}=periodOf(k,state.period), t=todayIso();
+  const T=tasks(k).filter(x=>x.from>=from&&x.from<to);
+  const notes=(k.notes||[]).filter(n=>n.date>=from&&n.date<to).sort((a,b)=>a.date<b.date?1:-1);
+  const devs=Object.entries(k.dev||{}).filter(([,d])=>d>=from&&d<to).sort((a,b)=>a[1]<b[1]?-1:1);
+  const done=T.filter(x=>x.done), missed=T.filter(x=>!x.done&&x.when==='past'), ahead=T.filter(x=>!x.done&&x.when!=='past');
+  const future=from>t, span=`${fmt(from)} ~ ${to==='9999-12-31'?'':fmt(addDaysIso(to,-1))}`;
+  const group=(title,list,empty)=>list.length?`<div class="stack"><h3 class="grp-title">${title} <span class="num muted">${list.length}</span></h3>${list.map(taskRow).join('')}</div>`:(empty?`<p class="small muted">${empty}</p>`:'');
+  return `<section class="panel stack period">
+    <div class="row" style="justify-content:space-between;align-items:baseline"><h2>${pt.name}${nextName?` → ${nextName}`:''} 시기</h2><button class="btn small" data-period="">오늘로 돌아가기</button></div>
+    <p class="small muted num">${span}${future?' · 아직 오지 않은 시기예요':''}</p>
+    <div class="period-stats"><div><b class="num">${done.length}</b><span>한 일</span></div><div><b class="num">${missed.length}</b><span>지나간 일</span></div><div><b class="num">${notes.length+devs.length}</b><span>남긴 기록</span></div></div>
+    ${group('한 일',done, future?'':'이 시기에 체크한 일이 없어요.')}
+    ${group(future?'이 시기에 할 일':'남은 일',ahead,'')}
+    ${group('하지 않고 지나간 일',missed,'')}
+    ${devs.length||notes.length?`<div class="stack"><h3 class="grp-title">이 시기의 기록</h3>${devs.map(([n,d])=>`<div class="note"><span class="note-date num">${fmt(d)}</span><span class="pill p-done">발달</span><span>${esc(n)}</span></div>`).join('')}${notes.map(noteRow).join('')}</div>`:(future?'':'<p class="small muted">이 시기에 남긴 기록이 없어요. <b>성장 기록</b> 탭에서 날짜를 골라 지난 일도 남길 수 있어요.</p>')}
+  </section>`;
+}
+function noteRow(n){ return `<div class="note"><span class="note-date num">${fmt(n.date)}</span><span class="pill p-past">${esc(n.cat)}</span><span class="note-text">${esc(n.text)}</span><button class="btn small ghost" data-delnote="${n.id}" aria-label="기록 삭제">삭제</button></div>`; }
+function addDaysIso(s,n){ return new Date(toUTC(s)+n*864e5).toISOString().slice(0,10); }
 function viewToday(k){
+  if(state.period) return heroHTML(k)+viewPeriod(k);
   const T=tasks(k), f=state.filter;
-  const list = f==='soon' ? T.filter(x=>x.when==='now'||x.when==='soon'||(x.when==='past'&&!x.done&&(toUTC(todayIso())-toUTC(x.to))/864e5<60)) : f==='all' ? T : T.filter(x=>x.cat===f);
-  const cats=['soon','all',...['행정','접종','검진','기관','입학','진로','입시','준비'].filter(c=>T.some(x=>x.cat===c&&x.when!=='past'))], names={soon:'지금·곧',all:'전체'};
+  const list = f==='soon' ? T.filter(x=>x.when==='now'||x.when==='soon'||(x.when==='past'&&!x.done&&(toUTC(todayIso())-toUTC(x.to))/864e5<60))
+    : f==='past' ? T.filter(x=>x.when==='past'||x.done).sort((a,b)=>a.to<b.to?1:-1) : f==='all' ? T : T.filter(x=>x.cat===f);
+  const cats=['soon','past','all',...['행정','접종','검진','기관','입학','진로','입시','준비'].filter(c=>T.some(x=>x.cat===c&&x.when!=='past'))], names={soon:'지금·곧',past:'지난 일',all:'전체'};
   return heroHTML(k) + `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>할 일</h2><span class="small muted">생년월일로 자동으로 만든 일정</span></div>
     <div class="filters">${cats.map(c=>`<button class="chip" aria-pressed="${f===c}" data-filter="${c}">${names[c]||c}</button>`).join('')}</div>
     <div>${list.length?list.map(taskRow).join(''):'<div class="empty">지금 챙길 일이 없어요. 전체 보기에서 앞으로의 일정을 확인하세요.</div>'}</div>
@@ -1793,11 +1835,43 @@ function viewGrow(k){
     return `<div class="task"><input type="checkbox" id="d-${n}" data-dev="${esc(n)}" ${done?'checked':''}><label class="t" for="d-${n}">${n}</label>
       <span class="pill ${done?'p-done':over?'p-warn':'p-past'}">${done?'했어요':over?'상담 권장':range}</span>
       <div class="d">${done?`기록한 날 <span class="num">${fmt(done)}</span>`:`보통 ${range}${over?` · ${DEV_CONSULT[n]}에는 건강검진이나 소아청소년과에서 물어보세요`:''}`}</div></div>`; }).join('');
-  return `<section class="panel stack"><h2>성장 기록</h2>
+  const P=L.lifePath(k.birth,todayIso(),k.entry), young=mo<72;
+  const notes=(k.notes||[]).slice().sort((a,b)=>a.date<b.date?1:-1);
+  const byPhase=P.points.map((p,i)=>({p, list:notes.filter(n=>n.date>=p.date&&(!P.points[i+1]||n.date<P.points[i+1].date))})).filter(g=>g.list.length).reverse();
+  const cats = young ? CAT_NOTE : ['학교생활','상·활동','관심사','성장·발달','상담 메모','기타'];
+  const ph = {BIRTH_NAMING:'예: 처음 웃은 날, 첫 외출',INFANT:'예: 첫 걸음마, 좋아하는 놀이',KINDERGARTEN:'예: 유치원 발표회, 새로 사귄 친구',ELEMENTARY:'예: 독서 대회 장려상, 수영 시작',MIDDLE:'예: 과학 동아리 가입, 진로 검사 결과',HIGH:'예: 탐구 보고서 주제, 모의고사 소감, 수시 상담 메모',ADULT:'예: 첫 학기 소감'}[P.phase]||'';
+  const journal = `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>성장 일지</h2><span class="small muted">${P.label}${P.grade?` ${P.grade}학년`:''}</span></div>
+    <p class="muted small">상, 활동, 관심사, 상담 내용을 날짜와 함께 남겨 두세요. 지난 일도 날짜를 바꿔서 남길 수 있고, 첫 화면 이정표를 누르면 시기별로 모아 보여 줍니다.${P.phase==='HIGH'||P.phase==='MIDDLE'?' 중고등학생은 학생부에 쓸 활동을 정리하는 데 도움이 돼요.':''}</p>
+    <form id="noteForm" class="note-form">
+      <input type="date" id="n-date" value="${todayIso()}" max="${todayIso()}" min="${k.birth}" aria-label="날짜">
+      <select id="n-cat" aria-label="종류">${cats.map(c=>`<option>${c}</option>`).join('')}</select>
+      <input id="n-text" placeholder="${ph}" aria-label="내용" required>
+      <button class="btn primary">남기기</button></form>
+    ${byPhase.length?byPhase.map(g=>`<div class="stack"><h3 class="grp-title">${g.p.name} 시기 <span class="num muted">${g.list.length}</span></h3>${g.list.map(noteRow).join('')}</div>`).join(''):'<div class="empty">아직 남긴 기록이 없어요.</div>'}
+  </section>`;
+  const devDone=Object.keys(k.dev||{}).length;
+  const dev = `<section class="panel stack"><h2>영유아 발달</h2>
     <p class="muted small">한 날을 체크해 두면 다음 건강검진 때 보여 줄 수 있어요. 상담을 권하는 기준은 성향과 관계없이 모든 아이에게 같습니다.</p>
     <div>${rows}</div></section>`;
+  return young ? dev + journal
+    : journal + `<details class="panel"><summary><b>영유아 때 발달 기록</b> <span class="small muted">${devDone}개 기록됨</span></summary><div style="margin-top:10px">${rows}</div></details>`;
+}
+const TEEN_AREAS=[{k:'adapt',name:'규칙·책임감'},{k:'peer',name:'관계·협업'},{k:'active',name:'표현·실행력'},{k:'focus',name:'탐구·몰입'},{k:'habit',name:'자기 관리'}];
+function viewTraitTeen(k,P){
+  const b=baseAreas(k);
+  const top=TEEN_AREAS.slice().sort((x,y)=>b[y.k]-b[x.k]);
+  const bars=TEEN_AREAS.map(a=>`<div class="area"><span>${a.name}</span><div class="track"><div class="ans" style="width:${b[a.k]}%"></div></div><span class="num small">${b[a.k]}</span></div>`).join('');
+  const tip={adapt:'정해진 과정을 꾸준히 해내는 힘이 있어요. 계획표가 있는 수업과 내신 관리에 강점이 나올 수 있어요.',peer:'사람들과 함께할 때 힘이 나요. 토론·발표·협업 활동을 학생부 활동으로 살려 보세요.',active:'아이디어를 바로 해 보는 편이에요. 프로젝트·실험·작품 같은 결과물이 남는 활동이 잘 맞아요.',focus:'궁금한 것을 깊이 파고드는 편이에요. 탐구 보고서와 심화 독서로 진로 근거를 쌓기 좋아요.',habit:'생활 리듬을 스스로 잡는 힘이 있어요. 자기주도 학습 시간을 늘려도 잘 해낼 수 있어요.'};
+  return `<section class="panel stack"><div class="row" style="justify-content:space-between"><h2>성향과 진로</h2><span class="small muted">${P.label} ${P.grade?P.grade+'학년':''}</span></div>
+    <p class="muted small">태어난 날로 본 기본 성향입니다. 중고등학생은 학교 진로 검사(커리어넷 등) 결과와 함께 보세요. 결과는 성장 일지에 남겨 두면 이정표에서 다시 볼 수 있어요.</p>
+    <div class="areas">${bars}</div></section>
+  <section class="stack"><h2>강점을 살리는 방법</h2><div class="recs">${top.slice(0,2).map(a=>`<div class="rec"><h3>${a.name}</h3><span>${tip[a.k]}</span></div>`).join('')}</div></section>
+  <section class="panel stack"><h2>${P.phase==='HIGH'?'대학·학과 고르기':'진로 후보 좁히기'}</h2>
+    <p class="small">${P.phase==='HIGH'?'성향과 내신으로 맞는 대학·학과를 찾고, 수시 6장 전략을 세워 보세요.':P.phase==='MIDDLE'?'고등학교 유형(일반고·특목고·자사고·특성화고)은 성향과 진로 후보에 따라 달라져요. 중2 2학기부터 알아보기 시작하세요.':'대학 생활과 진로를 함께 고민해 보세요.'}</p>
+    <div class="focus-links"><a class="focus-link" href="${LINKS.college}" target="_blank" rel="noopener">대학 매칭앱 ↗</a><a class="focus-link" href="${LINKS.kakao}" target="_blank" rel="noopener">와이튜브 진로·입시 상담 ↗</a></div></section>`;
 }
 function viewTrait(k){
+  const P0=L.lifePath(k.birth,todayIso(),k.entry); if(['MIDDLE','HIGH','ADULT'].includes(P0.phase)) return viewTraitTeen(k,P0);
   const b=baseAreas(k), aa=answeredAreas(k), f=finalAreas(k), band=ageBand(k), st=L.compute(k.birth,todayIso(),k.entry);
   const bars = AREAS_KG.map(a=>`<div class="area"><span>${a.name}</span><div class="track"><div class="ans" style="width:${f[a.k]}%"></div><div class="base" style="left:${b[a.k]}%" title="기본 성향"></div></div><span class="num small">${f[a.k]}</span></div>`).join('');
   const qs=questionsFor(k);
@@ -1815,6 +1889,16 @@ function viewTrait(k){
   <section class="panel"><h2>성향 문항 (25개)</h2>${quiz}</section>`;
 }
 function viewInst(k){
+  const P0=L.lifePath(k.birth,todayIso(),k.entry);
+  if(['ELEMENTARY','MIDDLE','HIGH','ADULT'].includes(P0.phase)) {
+    const row={ELEMENTARY:['초등학교','아이맞춤 초등학교 매칭으로 학교 특색과 성향을 비교하세요.','elem','아이맞춤 초등학교'],
+      MIDDLE:['고등학교','학교 유형별 특징과 우리 아이 성향을 함께 보세요. 고입 일정은 교육청 공지를 확인하세요.','kakao','고교 선택 상담'],
+      HIGH:['대학·학과','내신과 성향으로 맞는 대학·학과를 찾아보세요.','college','대학 매칭앱'],
+      ADULT:['다음 길','대학 생활과 진로를 함께 설계해 보세요.','kakao','와이튜브 상담']}[P0.phase];
+    return `<section class="panel stack"><h2>${row[0]} 고르기</h2><p class="small">${row[1]}</p>
+      <div class="focus-links"><a class="focus-link" href="${LINKS[row[2]]}" target="_blank" rel="noopener">${row[3]} ↗</a></div>
+      ${(k.insts||[]).length?`<p class="small muted">영유아 때 비교한 기관 ${k.insts.length}곳의 기록은 그대로 보관돼 있어요.</p>`:''}</section>`;
+  }
   const hot=hotGroups(k), list=k.insts||[];
   const card = inst => `<section class="panel stack" data-inst="${inst.id}"><div class="row" style="justify-content:space-between"><h3>${esc(inst.name)} <span class="small muted">${esc(inst.kind)}</span></h3><button class="btn small ghost" data-delinst="${inst.id}">삭제</button></div>
     ${[...CK].sort((a,b)=>(hot.has(b.g)?1:0)-(hot.has(a.g)?1:0)).map(g=>`<div><div class="label">${g.g}. ${g.name}${hot.has(g.g)?'<span class="grp-hot">우리 아이에게 중요</span>':''}</div>
@@ -1929,9 +2013,11 @@ function render(){
 document.addEventListener('click', e=>{
   if(e.target.closest('[data-logout]')){ C.signOut().then(()=>{ toast('로그아웃했어요'); render(); }); return; }
   if(e.target.closest('[data-sync]')){ doSync(); return; }
-  const t=e.target.closest('[data-kid],[data-addkid],[data-tab],[data-filter],[data-mark],[data-delinst],[data-delkid],[data-ym]'); if(!t) return;
+  const t=e.target.closest('[data-kid],[data-addkid],[data-tab],[data-filter],[data-mark],[data-delinst],[data-delkid],[data-ym],[data-period],[data-delnote]'); if(!t) return;
+  if('period' in t.dataset){ state.period = (t.dataset.period && state.period!==t.dataset.period) ? t.dataset.period : ''; state.tab='today'; save(); render(); document.querySelector('.period,.hero-card')?.scrollIntoView({block:'start',behavior:'smooth'}); return; }
+  if(t.dataset.delnote){ const k=kid(); k.notes=(k.notes||[]).filter(n=>n.id!==t.dataset.delnote); toast('기록을 삭제했어요'); save(); render(); return; }
   if(t.dataset.ym){ state.reportYm=t.dataset.ym; }
-  else if(t.dataset.kid){ state.cur=t.dataset.kid; }
+  else if(t.dataset.kid){ state.cur=t.dataset.kid; state.period=''; }
   else if('addkid' in t.dataset){ const id='k'+Date.now(); state.kids.push({id,name:'새 아이',birth:todayIso(),time:'',gender:'F',entry:null,done:{},dev:{},answers:{},insts:[]}); state.cur=id; state.tab='kid'; }
   else if(t.dataset.tab){ state.tab=t.dataset.tab; }
   else if(t.dataset.filter){ state.filter=t.dataset.filter; }
@@ -1954,6 +2040,9 @@ document.addEventListener('change', e=>{
 document.addEventListener('submit', e=>{
   e.preventDefault(); const k=kid();
   if(e.target.id==='loginForm'||e.target.id==='signupForm'){ authSubmit(e.target); return; }
+  if(e.target.id==='noteForm'){ const text=$('#n-text').value.trim(); if(!text) return;
+    (k.notes=k.notes||[]).push({id:'n'+Date.now(), date:$('#n-date').value||todayIso(), cat:$('#n-cat').value, text});
+    toast('기록했어요'); save(); render(); return; }
   if(e.target.id==='addInst'){ const n=$('#instName').value.trim(); if(!n) return; (k.insts=k.insts||[]).push({id:'i'+Date.now(),name:n,kind:$('#instKind').value,marks:{},memo:''}); toast(`${n}을(를) 추가했어요`); }
   if(e.target.id==='kidForm'){
     const birth=$('#f-birth').value; if(!birth){ toast('생년월일을 넣어 주세요'); return; }
